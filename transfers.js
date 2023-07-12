@@ -16,8 +16,7 @@ function getAgentParticipantId() {
             }
         })
         .catch((err) => {
-            console.log("There was a failure calling getConversation");
-            console.error(err);
+            console.log("There was a failure calling getConversation:", err);
         });
 }
 getAgentParticipantId();
