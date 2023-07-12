@@ -5,7 +5,7 @@ const client = platformClient.ApiClient.instance;
 function getAgentParticipantId() {
     let apiInstance = new platformClient.ConversationsApi();
 
-    apiInstance.getConversation(conversationId)
+    apiInstance.getConversation(window.conversationId)
         .then((data) => {
             let participants = data.participants;
             for (let i = 0; i < participants.length; i++) {
@@ -51,7 +51,7 @@ function consultTransfer() {
     };
 
     // Initiate a consult transfer to a queue
-    conversationsApi.postConversationsCallParticipantConsultQueue(conversationId, participantId, body)
+    conversationsApi.postConversationsCallParticipantConsultQueue(window.conversationId, participantId, body)
         .then((data) => {
             console.log(`Consult transfer success! data: ${JSON.stringify(data, null, 2)}`);
         })
@@ -67,7 +67,7 @@ function blindTransfer() {
     };
 
     // Replace this participant with the specified queue
-    conversationsApi.postConversationParticipantReplaceQueue(conversationId, participantId, body)
+    conversationsApi.postConversationParticipantReplaceQueue(window.conversationId, participantId, body)
         .then(() => {
             console.log("Blind transfer returned successfully.");
         })
