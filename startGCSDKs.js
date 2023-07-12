@@ -10,7 +10,6 @@ function startGCSDKs(clientId) {
     let redirectUri = 'https://doagenesys.github.io/GCCustomTransfer/';
     let userDetails = null;
     let environment = "mypurecloud.ie";
-    let conversationId = '';
 
     window.addEventListener('load', (event) => {
       assignConfiguration();
