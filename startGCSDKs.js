@@ -1,3 +1,4 @@
+window.conversationId = ''; // Declare conversationId as a global variable
 function startGCSDKs(clientId) {
   const console = window.console;
   return new Promise((resolve, reject) => {
@@ -84,7 +85,7 @@ function startGCSDKs(clientId) {
         if (local_env) environment = local_env;
       }
       if(searchParams.has(qParamConversationId)){
-        conversationId = searchParams.get(qParamConversationId);
+        window.conversationId = searchParams.get(qParamConversationId);
       }
     }
   });
