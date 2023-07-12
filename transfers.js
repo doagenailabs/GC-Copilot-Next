@@ -1,5 +1,4 @@
 let participantId = '';
-const platformClient = require('platformClient');
 const client = platformClient.ApiClient.instance;
 
 function getAgentParticipantId() {
