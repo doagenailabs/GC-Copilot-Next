@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom transfer</title>
+  <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
+  <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk-de77761d.min.js"></script>
+  <script src="startGCSDKs.js"></script>
+  <script src="exportContactList.js"></script>
+  <script src="getContactLists.js"></script>
+  <script src="showContactListRecords.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <h1>Custom Transfert</h1>
+  <button id="showContactLists">Mostrar contact lists</button>
+  <div id="contactLists">
+    <!-- Aquí se mostrarán las contact lists -->
+  </div>
+
+  <div id="loadingScreen" style="display:none;">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Cargando registros de la contact list</h5>
+        </div>
+        <div class="modal-body">
+          <div class="spinner-border" role="status">
+            <span class="sr-only">Cargando...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table id="contactListsTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Fecha de creación</th>
+        <th>División</th>
+        <th></th>
+        <!-- Columna vacía para radio buttons -->
+      </tr>
+    </thead>
+    <tbody id="contactListsTableBody">
+      <!-- Aquí se mostrarán las listas de contactos -->
+    </tbody>
+  </table>
+
+  <div id="paginationButtons">
+    <button id="previousPageBtn" disabled>Anterior</button>
+    <button id="nextPageBtn" disabled>Siguiente</button>
+  </div>
+
+  <script>
+    const clientId = '479255ae-cf23-4c2e-9209-555370df882c';
+
+    startGCSDKs(clientId)
+      .then(platformClient => {
+        contactListHandlers.addShowContactListsButtonListener(platformClient, clientId);
+      });
+  </script>
+</body>
+
+</html>
