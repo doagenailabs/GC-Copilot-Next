@@ -1,19 +1,21 @@
 function startGCSDKs(clientId) {
   const console = window.console;
   return new Promise((resolve, reject) => {
-    const appName = 'app name';
-    const qParamLanguage = 'language';
-    const qParamEnvironment = 'environment';
-
+    const appName = 'Custom transfers';
+    const qParamLanguage = 'langTag';
+    const qParamEnvironment = 'gcTargetEnv';
+    const qParamConversationId = 'conversationId';
     let language = 'en-us';
-    let redirectUri = 'https://doailabs.github.io/GC-CLM/';
+    let redirectUri = 'https://doagenesys.github.io/GCCustomTransfer/';
     let userDetails = null;
-    let environment = "mypurecloud.de";
+    let environment = "mypurecloud.ie";
+    let conversationId = '';
 
     window.addEventListener('load', (event) => {
       assignConfiguration();
       console.log(`environment after addEventListener: ${environment}`);
       console.log(`language after addEventListener: ${language}`);
+      console.log(`conversationId after addEventListener: ${conversationId}`);
 
       const platformClient = require('platformClient');
       const client = platformClient.ApiClient.instance;
@@ -80,7 +82,9 @@ function startGCSDKs(clientId) {
         let local_env = localStorage.getItem(`${appName}_environment`);
         if (local_env) environment = local_env;
       }
-      return (environment);
+      if(searchParams.has(qParamConversationId)){
+        conversationId = searchParams.get(qParamConversationId);
+      }
     }
   });
 }
