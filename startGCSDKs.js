@@ -39,14 +39,14 @@ function startGCSDKs(clientId) {
       client.setPersistSettings(true, appName);
       client.setEnvironment(environment);
 
-      client.loginImplicitGrant(clientId, redirectUri)
+  client.loginImplicitGrant(clientId, redirectUri)
         .then(data => usersApi.getUsersMe())
         .then(data => {
           userDetails = data;
 
           myClientApp.alerting.showToastPopup(
-            `Hola ${userDetails.name}`,
-            'Bienvenido a contact list management');
+            `Hello ${userDetails.name}`,
+            'Welcome to custom transfers widget');
         })
         .then(() => {
           document.addEventListener('DOMContentLoaded', () => {
@@ -56,6 +56,7 @@ function startGCSDKs(clientId) {
           });
 
           console.log('Finished setup.');
+          document.getElementById('body').style.display = 'block'; 
           resolve(platformClient);
         })
         .catch((err) => {
