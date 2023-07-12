@@ -1,70 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Custom transfer</title>
-  <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
-  <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk-de77761d.min.js"></script>
-  <script src="startGCSDKs.js"></script>
-  <script src="exportContactList.js"></script>
-  <script src="getContactLists.js"></script>
-  <script src="showContactListRecords.js"></script>
-  <link rel="stylesheet" href="styles.css">
+    <title>Custom transfer</title>
+    <script src="https://sdk-cdn.mypurecloud.com/javascript/55.1.1/purecloud-platform-client-v2.min.js"></script>
+    <script>
+        const appName = 'myApp';
+        const qParamLanguage = 'langTag';
+        const qParamEnvironment = 'gcTargetEnv';
+        const qParamConversationId = 'conversationId';
+        let language = 'en-us';
+        let environment = 'mypurecloud.ie';
+        let conversationId = '';
+        const client = platformClient.ApiClient.instance;
+
+        function assignConfiguration(){
+            let url = new URL(window.location);
+            let searchParams = new URLSearchParams(url.search);
+
+            if(searchParams.has(qParamLanguage)){
+                language = searchParams.get(qParamLanguage);
+                localStorage.setItem(`${appName}_language`, language);
+            } else {
+                let local_lang = localStorage.getItem(`${appName}_language`);
+                if(local_lang) language = local_lang;
+            }
+
+            if(searchParams.has(qParamEnvironment)){
+                environment = searchParams.get(qParamEnvironment);
+                localStorage.setItem(`${appName}_environment`, environment);
+            } else {
+                let local_env = localStorage.getItem(`${appName}_environment`);
+                if(local_env) environment = local_env;
+            }
+
+            if(searchParams.has(qParamConversationId)){
+                conversationId = searchParams.get(qParamConversationId);
+            }
+
+            // Set Genesys Cloud region and language
+            client.setEnvironment(environment);
+            client.setLanguage(language);
+        }
+
+        assignConfiguration(); // Call the function to assign language and environment
+
+        client.setAccessToken('4b980e28-662c-4bca-9b81-09d80bc304a3'); // Manually set auth token
+
+        const conversationsApi = new platformClient.ConversationsApi();
+        const routingApi = new platformClient.RoutingApi();
+
+        function consultTransfer() {
+            // Retrieve queue list
+            routingApi.getRoutingQueues()
+                .then((data) => {
+                    // Populate the dropdown with queue names
+                    var select = document.getElementById("queueSelect");
+                    for(var i = 0; i < data.entities.length; i++) {
+                        var opt = data.entities[i];
+                        var el = document.createElement("option");
+                        el.textContent = opt.name;
+                        el.value = opt.id;
+                        select.appendChild(el);
+                    }
+                })
+                .catch((err) => {
+                    console.log("Error retrieving queue list");
+                    console.error(err);
+                });
+
+            var body = {
+                "speakTo": document.getElementById("speakToSelect").value,
+                "queueId": document.getElementById("queueSelect").value
+            };
+
+            // Initiate a consult transfer to a queue
+            conversationsApi.postConversationsCallParticipantConsultQueue(interactionId, participantId, body)
+                .then((data) => {
+                    console.log(`Consult transfer success! data: ${JSON.stringify(data, null, 2)}`);
+                })
+                .catch((err) => {
+                    console.log("Error initiating consult transfer");
+                    console.error(err);
+                });
+        }
+
+        function blindTransfer() {
+            var body = {
+                // Blind transfer request parameters
+            };
+
+            // Replace this participant with the specified queue
+            conversationsApi.postConversationParticipantReplaceQueue(interactionId, participantId, body)
+                .then(() => {
+                    console.log("Blind transfer returned successfully.");
+                })
+                .catch((err) => {
+                    console.log("Error initiating blind transfer");
+                    console.error(err);
+                });
+        }
+    </script>
 </head>
-
 <body>
-  <h1>Custom Transfert</h1>
-  <button id="showContactLists">Mostrar contact lists</button>
-  <div id="contactLists">
-    <!-- Aquí se mostrarán las contact lists -->
-  </div>
-
-  <div id="loadingScreen" style="display:none;">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Cargando registros de la contact list</h5>
-        </div>
-        <div class="modal-body">
-          <div class="spinner-border" role="status">
-            <span class="sr-only">Cargando...</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <table id="contactListsTable">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Fecha de creación</th>
-        <th>División</th>
-        <th></th>
-        <!-- Columna vacía para radio buttons -->
-      </tr>
-    </thead>
-    <tbody id="contactListsTableBody">
-      <!-- Aquí se mostrarán las listas de contactos -->
-    </tbody>
-  </table>
-
-  <div id="paginationButtons">
-    <button id="previousPageBtn" disabled>Anterior</button>
-    <button id="nextPageBtn" disabled>Siguiente</button>
-  </div>
-
-  <script>
-    const clientId = '479255ae-cf23-4c2e-9209-555370df882c';
-
-    startGCSDKs(clientId)
-      .then(platformClient => {
-        contactListHandlers.addShowContactListsButtonListener(platformClient, clientId);
-      });
-  </script>
+    <button onclick="consultTransfer()">Consult Transfer</button>
+    <select id="speakToSelect">
+        <option value="DESTINATION">DESTINATION</option>
+        <option value="OBJECT">OBJECT</option>
+        <option value="BOTH">BOTH</option>
+        <option value="CONFERENCE">CONFERENCE</option>
+    </select>
+    <select id="queueSelect"></select>
+    <button onclick="blindTransfer()">Blind Transfer</button>
 </body>
-
 </html>
