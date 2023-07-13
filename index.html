@@ -4,8 +4,6 @@
     <title>Custom transfers</title>
     <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
     <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk-de77761d.min.js"></script>
-    <script src="startGCSDKs.js"></script>
-    <script src="transfers.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body id="body" style="display: none;">
@@ -18,5 +16,12 @@
     </select>
     <select id="queueSelect"></select>
     <button onclick="blindTransfer()">Blind Transfer</button>
+    
+    <script src="startGCSDKs.js"></script>
+    <script src="transfers.js"></script>
+    <script>
+        const clientId = '4b980e28-662c-4bca-9b81-09d80bc304a3';
+        startGCSDKs(clientId);
+    </script>
 </body>
 </html>
