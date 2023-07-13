@@ -20,7 +20,9 @@
     <button onclick="blindTransfer()">Blind Transfer</button>
     <script>
         const clientId = '4b980e28-662c-4bca-9b81-09d80bc304a3';
-        startGCSDKs(clientId);
+        document.addEventListener('DOMContentLoaded', function () {
+          startGCSDKs(clientId);
+        });
     </script>
 </body>
 </html>
