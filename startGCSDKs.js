@@ -1,10 +1,10 @@
-window.conversationId = ''; // Declare conversationId as a global variable
+window.conversationId = '';
 function startGCSDKs(clientId) {
   const console = window.console;
   return new Promise((resolve, reject) => {
     const appName = 'Custom transfers';
     const qParamLanguage = 'langTag';
-    const qParamEnvironment = 'gcTargetEnv';
+    const qParamGcHostOrigin = 'gcHostOrigin';
     const qParamConversationId = 'conversationId';
     let language = 'en-us';
     let redirectUri = 'https://doagenesys.github.io/GCCustomTransfer/';
@@ -24,7 +24,6 @@ function startGCSDKs(clientId) {
           gcHostOriginQueryParam: 'gcHostOrigin',
           gcTargetEnvQueryParam: 'gcTargetEnv'
         });
-        myClientApp.alerting.showToastPopup('Hello', 'Genesys Cloud');
         const region = myClientApp.gcEnvironment;
       });
 
@@ -38,7 +37,7 @@ function startGCSDKs(clientId) {
       client.setPersistSettings(true, appName);
       client.setEnvironment(environment);
 
-  client.loginImplicitGrant(clientId, redirectUri)
+      client.loginImplicitGrant(clientId, redirectUri)
         .then(data => usersApi.getUsersMe())
         .then(data => {
           userDetails = data;
@@ -75,8 +74,9 @@ function startGCSDKs(clientId) {
         let local_lang = localStorage.getItem(`${appName}_language`);
         if (local_lang) language = local_lang;
       }
-      if (searchParams.has(qParamEnvironment)) {
-        environment = searchParams.get(qParamEnvironment);
+      if (searchParams.has(qParamGcHostOrigin)) {
+        let gcHostOrigin = searchParams.get(qParamGcHostOrigin);
+        environment = gcHostOrigin.replace('https://apps.', '');
         localStorage.setItem(`${appName}_environment`, environment);
       } else {
         let local_env = localStorage.getItem(`${appName}_environment`);
