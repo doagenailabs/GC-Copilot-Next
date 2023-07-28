@@ -53,7 +53,7 @@ function consultTransfer() {
     };
 
     // Initiate a consult transfer to a queue
-    conversationsApi.postConversationsCallParticipantConsultQueue(window.conversationId, participantId, body)
+    conversationsApi.postConversationsCallParticipantConsult(window.conversationId, participantId, body)
         .then((data) => {
             console.log(`Consult transfer success! data: ${JSON.stringify(data, null, 2)}`);
         })
@@ -70,7 +70,7 @@ function blindTransfer() {
     };
 
     // Replace this participant with the specified queue
-    conversationsApi.postConversationParticipantReplaceQueue(window.conversationId, participantId, body)
+    conversationsApi.postConversationsCallParticipantReplace(window.conversationId, participantId, body)
         .then(() => {
             console.log("Blind transfer returned successfully.");
         })
