@@ -21,13 +21,12 @@ function getAgentParticipantId() {
 }
 getAgentParticipantId();
 
-
 const conversationsApi = new platformClient.ConversationsApi();
 const routingApi = new platformClient.RoutingApi();
 
 function populateQueues(selectId) {
     // Retrieve queue list
-    routingApi.getRoutingQueues()
+    routingApi.getRoutingQueues({pageSize: 1000})
         .then((data) => {
             // Populate the dropdown with queue names
             var select = document.getElementById(selectId);
@@ -109,7 +108,9 @@ function startBlindTransfer() {
     populateQueues("queueSelectBlind");
 }
 
-document.querySelector("#blindTransferButton").addEventListener("click", startBlindTransfer);
-document.querySelector("#consultTransferButton").addEventListener("click", startConsultTransfer);
-document.querySelector("#confirmBlindTransferButton").addEventListener("click", blindTransfer);
-document.querySelector("#confirmConsultTransferButton").addEventListener("click", consultTransfer);
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelector("#blindTransferButton").addEventListener("click", startBlindTransfer);
+    document.querySelector("#consultTransferButton").addEventListener("click", startConsultTransfer);
+    document.querySelector("#confirmBlindTransferButton").addEventListener("click", blindTransfer);
+    document.querySelector("#confirmConsultTransferButton").addEventListener("click", consultTransfer);
+});
