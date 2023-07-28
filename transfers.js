@@ -25,6 +25,26 @@ getAgentParticipantId();
 const conversationsApi = new platformClient.ConversationsApi();
 const routingApi = new platformClient.RoutingApi();
 
+function populateQueues(selectId) {
+    // Retrieve queue list
+    routingApi.getRoutingQueues()
+        .then((data) => {
+            // Populate the dropdown with queue names
+            var select = document.getElementById(selectId);
+            for(var i = 0; i < data.entities.length; i++) {
+                var opt = data.entities[i];
+                var el = document.createElement("option");
+                el.textContent = opt.name;
+                el.value = opt.id;
+                select.appendChild(el);
+            }
+        })
+        .catch((err) => {
+            console.log("Error retrieving queue list");
+            console.error(err);
+        });
+}
+
 function consultTransfer() {
     var speakTo = document.querySelector("#speakToSelect").value;
     var queueId = document.querySelector("#queueSelectConsult").value;
@@ -61,29 +81,32 @@ function blindTransfer() {
         });
 }
 
-function chooseTransferType() {
-    let transferType = prompt("Please enter your transfer type (Blind or Consult)");
-    if (transferType.toLowerCase() === "blind") {
-        // For Blind transfer
-        startBlindTransfer();
-    } else if (transferType.toLowerCase() === "consult") {
-        // For Consult transfer
-        startConsultTransfer();
-    } else {
-        alert("Invalid transfer type");
-    }
-}
-
 function startConsultTransfer() {
     // Code to display the Consult transfer elements
     document.querySelector("#transferTypeSelection").style.display = "none";
     document.querySelector("#consultTransferElements").style.display = "block";
+    
+    // Populate the queues dropdown
+    populateQueues("queueSelectConsult");
+
+    // Populate the speakTo dropdown
+    let speakToOptions = ["DESTINATION", "OBJECT", "BOTH", "CONFERENCE"];
+    let select = document.querySelector("#speakToSelect");
+    for(let option of speakToOptions) {
+        let el = document.createElement("option");
+        el.textContent = option;
+        el.value = option;
+        select.appendChild(el);
+    }
 }
 
 function startBlindTransfer() {
     // Code to display the Blind transfer elements
     document.querySelector("#transferTypeSelection").style.display = "none";
     document.querySelector("#blindTransferElements").style.display = "block";
+    
+    // Populate the queues dropdown
+    populateQueues("queueSelectBlind");
 }
 
 document.querySelector("#blindTransferButton").addEventListener("click", startBlindTransfer);
