@@ -9,15 +9,22 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body id="body" style="display: none;">
-    <button onclick="consultTransfer()">Consult Transfer</button>
-    <select id="speakToSelect">
-        <option value="DESTINATION">DESTINATION</option>
-        <option value="OBJECT">OBJECT</option>
-        <option value="BOTH">BOTH</option>
-        <option value="CONFERENCE">CONFERENCE</option>
-    </select>
-    <select id="queueSelect"></select>
-    <button onclick="blindTransfer()">Blind Transfer</button>
+    <div id="transferTypeSelection">
+        <button id="blindTransferButton" onclick="startBlindTransfer()">Blind Transfer</button>
+        <button id="consultTransferButton" onclick="startConsultTransfer()">Consult Transfer</button>
+    </div>
+    
+    <div id="blindTransferElements" style="display: none;">
+        <select id="queueSelectBlind"></select>
+        <button id="confirmBlindTransferButton" onclick="blindTransfer()">Confirm</button>
+    </div>
+
+    <div id="consultTransferElements" style="display: none;">
+        <select id="speakToSelect"></select>
+        <select id="queueSelectConsult"></select>
+        <button id="confirmConsultTransferButton" onclick="consultTransfer()">Confirm</button>
+    </div>
+
     <script>
         const clientId = '4b980e28-662c-4bca-9b81-09d80bc304a3';
         document.addEventListener('DOMContentLoaded', function () {
