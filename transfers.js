@@ -26,27 +26,11 @@ const conversationsApi = new platformClient.ConversationsApi();
 const routingApi = new platformClient.RoutingApi();
 
 function consultTransfer() {
-    // Retrieve queue list
-    routingApi.getRoutingQueues()
-        .then((data) => {
-            // Populate the dropdown with queue names
-            var select = document.getElementById("queueSelect");
-            for(var i = 0; i < data.entities.length; i++) {
-                var opt = data.entities[i];
-                var el = document.createElement("option");
-                el.textContent = opt.name;
-                el.value = opt.id;
-                select.appendChild(el);
-            }
-        })
-        .catch((err) => {
-            console.log("Error retrieving queue list");
-            console.error(err);
-        });
-
+    var speakTo = document.querySelector("#speakToSelect").value;
+    var queueId = document.querySelector("#queueSelectConsult").value;
     var body = {
-        "speakTo": document.getElementById("speakToSelect").value,
-        "queueId": document.getElementById("queueSelect").value
+        "speakTo": speakTo,
+        "queueId": queueId
     };
 
     // Initiate a consult transfer to a queue
@@ -61,45 +45,48 @@ function consultTransfer() {
 }
 
 function blindTransfer() {
+    var queueId = document.querySelector("#queueSelectBlind").value;
     var body = {
-        // Blind transfer request parameters
+        "queueId": queueId
     };
 
     // Replace this participant with the specified queue
     conversationsApi.postConversationParticipantReplaceQueue(window.conversationId, participantId, body)
-            .then(() => {
-        console.log("Blind transfer returned successfully.");
-    })
-    .catch((err) => {
-        console.log("Error initiating blind transfer");
-        console.error(err);
-    });
+        .then(() => {
+            console.log("Blind transfer returned successfully.");
+        })
+        .catch((err) => {
+            console.log("Error initiating blind transfer");
+            console.error(err);
+        });
 }
 
 function chooseTransferType() {
     let transferType = prompt("Please enter your transfer type (Blind or Consult)");
     if (transferType.toLowerCase() === "blind") {
         // For Blind transfer
-        document.querySelector("#startTransfer").addEventListener("click", startBlindTransfer);
+        startBlindTransfer();
     } else if (transferType.toLowerCase() === "consult") {
         // For Consult transfer
-        document.querySelector("#startTransfer").addEventListener("click", startConsultTransfer);
+        startConsultTransfer();
     } else {
         alert("Invalid transfer type");
     }
 }
 
 function startConsultTransfer() {
-    // Code to display the two drop down lists and the confirm button
-    document.querySelector("#dropdown1").style.display = "block";
-    document.querySelector("#dropdown2").style.display = "block";
-    document.querySelector("#confirmButton").style.display = "block";
-    document.querySelector("#confirmButton").addEventListener("click", consultTransfer);
+    // Code to display the Consult transfer elements
+    document.querySelector("#transferTypeSelection").style.display = "none";
+    document.querySelector("#consultTransferElements").style.display = "block";
 }
 
 function startBlindTransfer() {
-    // Code to display the drop down list and the confirm button
-    document.querySelector("#dropdown1").style.display = "block";
-    document.querySelector("#confirmButton").style.display = "block";
-    document.querySelector("#confirmButton").addEventListener("click", blindTransfer);
+    // Code to display the Blind transfer elements
+    document.querySelector("#transferTypeSelection").style.display = "none";
+    document.querySelector("#blindTransferElements").style.display = "block";
 }
+
+document.querySelector("#blindTransferButton").addEventListener("click", startBlindTransfer);
+document.querySelector("#consultTransferButton").addEventListener("click", startConsultTransfer);
+document.querySelector("#confirmBlindTransferButton").addEventListener("click", blindTransfer);
+document.querySelector("#confirmConsultTransferButton").addEventListener("click", consultTransfer);
