@@ -41,8 +41,6 @@ function startGCSDKs(clientId) {
         .then(data => usersApi.getUsersMe())
         .then(data => {
           userDetails = data;
-
-          myClientApp.alerting.showToastPopup(
         })
         .then(() => {
           document.addEventListener('DOMContentLoaded', () => {
