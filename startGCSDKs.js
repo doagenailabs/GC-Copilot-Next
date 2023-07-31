@@ -7,6 +7,7 @@ function startGCSDKs(clientId) {
     const qParamGcHostOrigin = 'gcHostOrigin';
     const qParamConversationId = 'conversationId';
     let language = 'en-us';
+    let redirectUri = 'https://doagenesys.github.io/GCCustomTransfer/';
     let redirectUri = 'https://doagenesys.github.io/GCCustomTransfer';
     let userDetails = null;
     let environment = "mypurecloud.ie";
@@ -16,7 +17,6 @@ function startGCSDKs(clientId) {
       console.log(`environment after addEventListener: ${environment}`);
       console.log(`language after addEventListener: ${language}`);
       console.log(`conversationId after addEventListener: ${conversationId}`);
-
       const client = platformClient.ApiClient.instance;
       document.addEventListener('DOMContentLoaded', function () {
         var ClientApp = window.purecloud.apps.ClientApp;
@@ -26,21 +26,20 @@ function startGCSDKs(clientId) {
         });
         const region = myClientApp.gcEnvironment;
       });
-
       const usersApi = new platformClient.UsersApi();
-
       let ClientApp = window.purecloud.apps.ClientApp;
       let myClientApp = new ClientApp({
         pcEnvironment: environment
       });
-
       client.setPersistSettings(true, appName);
       client.setEnvironment(environment);
-
       client.loginImplicitGrant(clientId, redirectUri)
         .then(data => usersApi.getUsersMe())
         .then(data => {
           userDetails = data;
+          myClientApp.alerting.showToastPopup(
+            `Hello ${userDetails.name}`,
+            'Welcome to custom transfers widget');
         })
         .then(() => {
           document.addEventListener('DOMContentLoaded', () => {
@@ -48,7 +47,6 @@ function startGCSDKs(clientId) {
             document.getElementById('span_language').innerText = language;
             document.getElementById('span_name').innerText = userDetails.name;
           });
-
           console.log('Finished setup.');
           document.getElementById('body').style.display = 'block'; 
           resolve(platformClient);
@@ -58,11 +56,9 @@ function startGCSDKs(clientId) {
           reject(err);
         });
     });
-
     function assignConfiguration() {
       let url = new URL(window.location);
       let searchParams = new URLSearchParams(url.search);
-
       if (searchParams.has(qParamLanguage)) {
         language = searchParams.get(qParamLanguage);
         localStorage.setItem(`${appName}_language`, language);
