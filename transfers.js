@@ -60,30 +60,40 @@ function consultTransfer() {
             "queueId": queueId
         }
     };
-    console.log("window.conversationId:", window.conversationId);
-    console.log("customerParticipantId:", customerParticipantId);
-    console.log("speakTo:", speakTo);
-    console.log("queueId:", queueId);
 
     conversationsApi.postConversationsCallParticipantConsult(window.conversationId, customerParticipantId, body)
         .then((data) => {
             console.log(`Consult transfer success! data: ${JSON.stringify(data, null, 2)}`);
             
-            // Make the second API call
-            let patchBody = {
-                "state": "DISCONNECTED"
-            };
-            conversationsApi.patchConversationsCallParticipant(window.conversationId, agentParticipantId, patchBody)
-                .then((data) => {
-                    console.log(`Agent disconnected successfully! data: ${JSON.stringify(data, null, 2)}`);
-                })
-                .catch((err) => {
-                    console.log("Error disconnecting the agent");
-                    console.error(err);
-                });
+            // Clear all the elements from the UI
+            document.querySelector("#consultTransferElements").innerHTML = '';
+
+            // Create a new button for confirming the consult transfer
+            let confirmButton = document.createElement('button');
+            confirmButton.id = 'confirmConsultTransferButton';
+            confirmButton.textContent = 'Confirm consult transfer';
+            document.querySelector("#consultTransferElements").appendChild(confirmButton);
+            
+            // Add an event listener to the confirm button
+            document.querySelector("#confirmConsultTransferButton").addEventListener("click", confirmConsultTransfer);
         })
         .catch((err) => {
             console.log("Error initiating consult transfer");
+            console.error(err);
+        });
+}
+
+function confirmConsultTransfer() {
+    // Make the second API call
+    let patchBody = {
+        "state": "DISCONNECTED"
+    };
+    conversationsApi.patchConversationsCallParticipant(window.conversationId, agentParticipantId, patchBody)
+        .then((data) => {
+            console.log(`Agent disconnected successfully! data: ${JSON.stringify(data, null, 2)}`);
+        })
+        .catch((err) => {
+            console.log("Error disconnecting the agent");
             console.error(err);
         });
 }
