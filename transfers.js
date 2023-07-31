@@ -153,5 +153,4 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelector("#blindTransferButton").addEventListener("click", startBlindTransfer);
     document.querySelector("#consultTransferButton").addEventListener("click", startConsultTransfer);
     document.querySelector("#confirmBlindTransferButton").addEventListener("click", blindTransfer);
-    document.querySelector("#confirmConsultTransferButton").addEventListener("click", consultTransfer);
 });
