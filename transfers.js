@@ -7,10 +7,13 @@ function getAgentParticipantId() {
 
     apiInstance.getConversation(window.conversationId)
         .then((data) => {
+            console.log("Conversation data:", data);
             let participants = data.participants;
+            console.log("Participants:", participants);
             for (let i = 0; i < participants.length; i++) {
                 if (participants[i].purpose === 'agent') {
                     participantId = participants[i].id;
+                    console.log("Setting participantId:", participantId);
                     break;
                 }
             }
