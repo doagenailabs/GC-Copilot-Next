@@ -23,7 +23,6 @@ function getAgentParticipantId() {
             console.log("There was a failure calling getConversation:", err);
         });
 }
-getAgentParticipantId();
 
 const conversationsApi = new platformClient.ConversationsApi();
 const routingApi = new platformClient.RoutingApi();
@@ -92,9 +91,12 @@ function startConsultTransfer() {
     // Code to display the Consult transfer elements
     document.querySelector("#transferTypeSelection").style.display = "none";
     document.querySelector("#consultTransferElements").style.display = "block";
+
+    getAgentParticipantId();
     
     // Populate the queues dropdown
     populateQueues("queueSelectConsult");
+    
 
     // Populate the speakTo dropdown
     let speakToOptions = ["DESTINATION", "OBJECT", "BOTH", "CONFERENCE"];
@@ -111,6 +113,8 @@ function startBlindTransfer() {
     // Code to display the Blind transfer elements
     document.querySelector("#transferTypeSelection").style.display = "none";
     document.querySelector("#blindTransferElements").style.display = "block";
+
+    getAgentParticipantId();
     
     // Populate the queues dropdown
     populateQueues("queueSelectBlind");
