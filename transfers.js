@@ -54,9 +54,10 @@ function consultTransfer() {
         "speakTo": speakTo,
         "queueId": queueId
     };
-
     console.log("window.conversationId:", window.conversationId);
     console.log("participantId:", participantId);
+    console.log("speakTo:", speakTo);
+    console.log("queueId:", queueId);
     
     conversationsApi.postConversationsCallParticipantConsult(window.conversationId, participantId, body)
         .then((data) => {
