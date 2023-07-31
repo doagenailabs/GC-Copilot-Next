@@ -1,9 +1,11 @@
-let participantId = '';
+let agentParticipantId = '';
+let customerParticipantId = '';
+
 const platformClient = require('platformClient');
 const client = platformClient.ApiClient.instance;
 
-function getAgentParticipantId() {
-    console.log("getAgentParticipantId started");
+function getParticipantIds() {
+    console.log("getParticipantIds started");
     let apiInstance = new platformClient.ConversationsApi();
 
     apiInstance.getConversation(window.conversationId)
@@ -13,9 +15,11 @@ function getAgentParticipantId() {
             console.log("Participants:", participants);
             for (let i = 0; i < participants.length; i++) {
                 if (participants[i].purpose === 'agent') {
-                    participantId = participants[i].id;
-                    console.log("Setting participantId:", participantId);
-                    break;
+                    agentParticipantId = participants[i].id;
+                    console.log("Setting agentParticipantId:", agentParticipantId);
+                } else if (participants[i].purpose === 'customer') {
+                    customerParticipantId = participants[i].id;
+                    console.log("Setting customerParticipantId:", customerParticipantId);
                 }
             }
         })
@@ -52,16 +56,31 @@ function consultTransfer() {
     var queueId = document.querySelector("#queueSelectConsult").value;
     var body = {
         "speakTo": speakTo,
-        "queueId": queueId
+        "destination": {
+            "queueId": queueId
+        }
     };
     console.log("window.conversationId:", window.conversationId);
-    console.log("participantId:", participantId);
+    console.log("customerParticipantId:", customerParticipantId);
     console.log("speakTo:", speakTo);
     console.log("queueId:", queueId);
-    
-    conversationsApi.postConversationsCallParticipantConsult(window.conversationId, participantId, body)
+
+    conversationsApi.postConversationsCallParticipantConsult(window.conversationId, customerParticipantId, body)
         .then((data) => {
             console.log(`Consult transfer success! data: ${JSON.stringify(data, null, 2)}`);
+            
+            // Make the second API call
+            let patchBody = {
+                "state": "DISCONNECTED"
+            };
+            conversationsApi.patchConversationsCallParticipant(window.conversationId, agentParticipantId, patchBody)
+                .then((data) => {
+                    console.log(`Agent disconnected successfully! data: ${JSON.stringify(data, null, 2)}`);
+                })
+                .catch((err) => {
+                    console.log("Error disconnecting the agent");
+                    console.error(err);
+                });
         })
         .catch((err) => {
             console.log("Error initiating consult transfer");
@@ -93,11 +112,10 @@ function startConsultTransfer() {
     document.querySelector("#transferTypeSelection").style.display = "none";
     document.querySelector("#consultTransferElements").style.display = "block";
 
-    getAgentParticipantId();
-    
+    getParticipantIds();
+
     // Populate the queues dropdown
     populateQueues("queueSelectConsult");
-    
 
     // Populate the speakTo dropdown
     let speakToOptions = ["DESTINATION", "OBJECT", "BOTH", "CONFERENCE"];
