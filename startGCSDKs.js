@@ -43,8 +43,6 @@ function startGCSDKs(clientId) {
           userDetails = data;
 
           myClientApp.alerting.showToastPopup(
-            `Hello ${userDetails.name}`,
-            'Welcome to custom transfers widget');
         })
         .then(() => {
           document.addEventListener('DOMContentLoaded', () => {
