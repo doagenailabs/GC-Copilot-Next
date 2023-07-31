@@ -3,6 +3,7 @@ const platformClient = require('platformClient');
 const client = platformClient.ApiClient.instance;
 
 function getAgentParticipantId() {
+    console.log("getAgentParticipantId started");
     let apiInstance = new platformClient.ConversationsApi();
 
     apiInstance.getConversation(window.conversationId)
