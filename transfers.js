@@ -64,7 +64,7 @@ function consultTransfer() {
     conversationsApi.postConversationsCallParticipantConsult(window.conversationId, customerParticipantId, body)
         .then((data) => {
             console.log(`Consult transfer success! data: ${JSON.stringify(data, null, 2)}`);
-            
+
             // Clear all the elements from the UI
             document.querySelector("#consultTransferElements").innerHTML = '';
 
@@ -73,7 +73,7 @@ function consultTransfer() {
             confirmButton.id = 'confirmConsultTransferButton';
             confirmButton.textContent = 'Confirm consult transfer';
             document.querySelector("#consultTransferElements").appendChild(confirmButton);
-            
+
             // Add an event listener to the confirm button
             document.querySelector("#confirmConsultTransferButton").addEventListener("click", confirmConsultTransfer);
         })
