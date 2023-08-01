@@ -161,13 +161,14 @@ function startBlindTransfer() {
     document.querySelector("#transferTypeSelection").style.display = "none";
     document.querySelector("#blindTransferElements").style.display = "block";
 
-    getAgentParticipantId();
+    getParticipantIds();
     
     // Populate the queues dropdown
     populateQueues("queueSelectBlind");
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOMContentLoaded event fired'); 
     document.querySelector("#blindTransferButton").addEventListener("click", startBlindTransfer);
     document.querySelector("#consultTransferButton").addEventListener("click", startConsultTransfer);
     document.querySelector("#confirmBlindTransferButton").addEventListener("click", blindTransfer);
