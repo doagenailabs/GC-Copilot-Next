@@ -127,9 +127,12 @@ function startConsultTransfer() {
     // Populate the queues dropdown
     populateQueues("queueSelectConsult");
 
+    // Clear the speakTo dropdown
+    let select = document.querySelector("#speakToSelect");
+    select.innerHTML = '';
+
     // Populate the speakTo dropdown
     let speakToOptions = ["DESTINATION", "OBJECT", "BOTH", "CONFERENCE"];
-    let select = document.querySelector("#speakToSelect");
     for(let option of speakToOptions) {
         let el = document.createElement("option");
         el.textContent = option;
@@ -146,7 +149,6 @@ function startConsultTransfer() {
     // Add an event listener to the "Next" button
     document.querySelector("#nextButton").addEventListener("click", consultTransfer);
 }
-
 
 function startBlindTransfer() {
     // Code to display the Blind transfer elements
