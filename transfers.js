@@ -105,9 +105,9 @@ function blindTransfer() {
     };
 
     console.log("window.conversationId:", window.conversationId);
-    console.log("participantId:", participantId);
+    console.log("agentParticipantId:", agentParticipantId);  // corrected variable
 
-    conversationsApi.postConversationsCallParticipantReplace(window.conversationId, participantId, body)
+    conversationsApi.postConversationsCallParticipantReplace(window.conversationId, agentParticipantId, body)  // corrected variable
         .then(() => {
             console.log("Blind transfer returned successfully.");
         })
