@@ -136,7 +136,17 @@ function startConsultTransfer() {
         el.value = option;
         select.appendChild(el);
     }
+
+    // Create a new "Next" button
+    let nextButton = document.createElement('button');
+    nextButton.id = 'nextButton';
+    nextButton.textContent = 'Next';
+    document.querySelector("#consultTransferElements").appendChild(nextButton);
+
+    // Add an event listener to the "Next" button
+    document.querySelector("#nextButton").addEventListener("click", consultTransfer);
 }
+
 
 function startBlindTransfer() {
     // Code to display the Blind transfer elements
