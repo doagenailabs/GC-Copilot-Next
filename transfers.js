@@ -140,6 +140,12 @@ function startConsultTransfer() {
         select.appendChild(el);
     }
 
+    // Remove any existing "Next" button
+    let existingNextButton = document.querySelector("#nextButton");
+    if (existingNextButton) {
+        existingNextButton.remove();
+    }
+
     // Create a new "Next" button
     let nextButton = document.createElement('button');
     nextButton.id = 'nextButton';
