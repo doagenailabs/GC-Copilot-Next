@@ -1,4 +1,5 @@
 window.conversationId = '';
+
 function startGCSDKs(clientId) {
   const console = window.console;
   return new Promise((resolve, reject) => {
@@ -10,6 +11,7 @@ function startGCSDKs(clientId) {
     let redirectUri = 'https://doagenesys.github.io/GCCustomTransfer';
     let userDetails = null;
     let environment = "mypurecloud.ie";
+    
     window.addEventListener('load', (event) => {
       assignConfiguration();
       console.log(`environment after addEventListener: ${environment}`);
@@ -35,7 +37,6 @@ function startGCSDKs(clientId) {
         .then(data => usersApi.getUsersMe())
         .then(data => {
           userDetails = data;
-
           myClientApp.alerting.showToastPopup(
             `Hello ${userDetails.name}`,
             'Welcome to custom transfers widget');
@@ -55,6 +56,7 @@ function startGCSDKs(clientId) {
           reject(err);
         });
     });
+
     function assignConfiguration() {
       let url = new URL(window.location);
       let searchParams = new URLSearchParams(url.search);
