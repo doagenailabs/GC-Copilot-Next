@@ -3,12 +3,12 @@ window.conversationId = '';
 function startGCSDKs(clientId) {
   const console = window.console;
   return new Promise((resolve, reject) => {
-    const appName = 'Custom transfers';
+    const appName = 'Call monitor alert';
     const qParamLanguage = 'langTag';
     const qParamGcHostOrigin = 'gcHostOrigin';
     const qParamConversationId = 'conversationId';
     let language = 'en-us';
-    let redirectUri = 'https://doagenesys.github.io/GCCustomTransfer';
+    let redirectUri = 'https://doagenesys.github.io/GCCallMonitorAgentAlert';
     let userDetails = null;
     let environment = "mypurecloud.ie";
     
