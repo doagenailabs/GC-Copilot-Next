@@ -36,6 +36,7 @@ function startGCSDKs(clientId) {
         let myClientApp = new ClientApp({
             pcEnvironment: window.environment
         });
+        window.myClientApp = myClientApp; 
         client.setPersistSettings(true, appName);
         client.setEnvironment(window.environment);
         client.loginImplicitGrant(clientId, redirectUri)
