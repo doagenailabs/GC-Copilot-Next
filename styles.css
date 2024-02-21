@@ -1,67 +1,23 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    text-align: center; /* Center align the content */
-    padding-top: 50px; /* Add some padding at the top */
-    background-color: #f0f0f0; /* A light background to keep it professional and clean */
+    text-align: center; 
+    padding-top: 50px; 
+    background-color: #f0f0f0; 
 }
 
 h1 {
-    font-size: 2.5em; /* Increase the font size */
-    color: #333; /* Dark color for the text */
-    margin-bottom: 20px; /* Add some space below the title */
-    padding: 20px; /* Add padding to make it stand out */
-    background-color: #ffffff; /* White background for the title */
-    display: inline-block; /* Only take up as much width as needed */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow to lift the title off the page */
-    border-radius: 10px; /* Rounded corners for a modern look */
+    font-size: 2.5em; 
+    color: #333; 
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #ffffff;
+    display: inline-block; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    border-radius: 10px;
 }
 
-/* Add a Google Font for more uniqueness */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap');
 
 body {
-    font-family: 'Open Sans', sans-serif; /* Apply the Google Font */
-}
-
-#toast {
-    visibility: hidden; /* Hidden by default */
-    min-width: 250px; /* Set a default minimum width */
-    margin-left: -125px; /* Divide value of min-width by 2 */
-    background-color: #333; /* Black background color */
-    color: #fff; /* White text color */
-    text-align: center; /* Centered text */
-    border-radius: 2px; /* Rounded borders */
-    padding: 16px; /* Padding */
-    position: fixed; /* Sit on top of the screen */
-    z-index: 1; /* Add a z-index if needed */
-    left: 50%; /* Center the toast */
-    bottom: 30px; /* 30px from the bottom */
-}
-
-/* Show the toast when adding "show" class, with animation */
-.show {
-    visibility: visible; /* Show the toast */
-    /* Add animation: Fade in the toast */
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
-    animation: fadein 0.5s, fadeout 0.5s 4.5s;
-}
-
-@-webkit-keyframes fadein {
-    from {bottom: 0; opacity: 0;} 
-    to {bottom: 30px; opacity: 1;}
-}
-
-@keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
-}
-
-@-webkit-keyframes fadeout {
-    from {bottom: 30px; opacity: 1;} 
-    to {bottom: 0; opacity: 0;}
-}
-
-@keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0;}
+    font-family: 'Open Sans', sans-serif;
 }
