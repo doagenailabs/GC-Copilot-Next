@@ -9,54 +9,40 @@
     <script src="webSocket.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body id="body" style="display: none;">
-    <div id="transferTypeSelection">
-        <button id="blindTransferButton" onclick="startBlindTransfer()">Blind Transfer</button>
-        <button id="consultTransferButton" onclick="startConsultTransfer()">Consult Transfer</button>
-    </div>
-    
-    <div id="blindTransferElements" style="display: none;">
-        <select id="queueSelectBlind"></select>
-        <button id="confirmBlindTransferButton" onclick="blindTransfer()">Confirm</button>
-    </div>
-
-    <div id="consultTransferElements" style="display: none;">
-        <select id="speakToSelect"></select>
-        <select id="queueSelectConsult"></select>
-        <!-- Removed the confirmConsultTransferButton here -->
-    </div>
+<body>
+    <h1>Monitor alerts</h1>
     <script>
-            function getConfig() {
-                return fetch('/api/getConfig')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Environment vars could not be retrieved');
-                        }
-                        return response.json();
-                    });
-            }
-        
-            function setWindowConfig(config) {
-                Object.keys(config).forEach(key => {
-                    window[key] = config[key];
+        function getConfig() {
+            return fetch('/api/getConfig')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Environment vars could not be retrieved');
+                    }
+                    return response.json();
                 });
-            }
-        
-            async function start() {
-                try {
-                    await getConfig()
-                    const config = await getConfig();
-                    setWindowConfig(config);
-                    const platformClient = await startGCSDKs();
-                    window.platformClient = platformClient;
-                    console.log('index.html - SDK started');
-                    await initializeWebSocket();                    
-                } catch (error) {
-                    console.error('Error occurred:', error);
-                }
-            }
+        }
 
-            start();
+        function setWindowConfig(config) {
+            Object.keys(config).forEach(key => {
+                window[key] = config[key];
+            });
+        }
+
+        async function start() {
+            try {
+                await getConfig()
+                const config = await getConfig();
+                setWindowConfig(config);
+                const platformClient = await startGCSDKs();
+                window.platformClient = platformClient;
+                console.log('index.html - SDK started');
+                await initializeWebSocket();                    
+            } catch (error) {
+                console.error('Error occurred:', error);
+            }
+        }
+
+        start();
     </script>
 </body>
 </html>
