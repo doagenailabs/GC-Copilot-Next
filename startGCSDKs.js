@@ -5,10 +5,12 @@ function startGCSDKs(clientId) {
         const qParamLanguage = 'langTag';
         const qParamGcHostOrigin = 'gcHostOrigin';
         const qParamEnvironment = 'gcTargetEnv';
+        const qParamConversationId = 'conversationId';
         let language = '';  
         let redirectUri = 'https://gc-call-monitor-agent-alert.vercel.app';
         let userDetails = null;
-        let gcHostOrigin = '';    
+        let gcHostOrigin = '';
+        let conversationId = '';
         assignConfiguration();
 
         const hostName = new URL(gcHostOrigin).hostname;
@@ -57,6 +59,15 @@ function startGCSDKs(clientId) {
         function assignConfiguration() {
             let browser_url = new URL(window.location);
             let searchParams = new URLSearchParams(browser_url.search);
+            
+            if (searchParams.has(qParamConversationId)) {
+                conversationId = searchParams.get(qParamConversationId);
+                window.conversationId = conversationId; 
+                console.log('Conversation ID set from URL parameter:', conversationId);
+            } else {
+                console.log('Conversation ID not found in URL parameters.');
+            }
+
             if (searchParams.has(qParamLanguage)) {
                 language = searchParams.get(qParamLanguage);
                 localStorage.setItem(`${appName}_language`, language);
