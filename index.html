@@ -35,7 +35,7 @@
                 console.log("index.html - getConfig OK");
                 setWindowConfig(config);
                 console.log("index.html - setWindowConfig OK");
-                const platformClient = await startGCSDKs();
+                const platformClient = await startGCSDKs(window.GCclientId);
                 window.platformClient = platformClient;
                 console.log("index.html - SDK started");
                 await initializeWebSocket();                    
