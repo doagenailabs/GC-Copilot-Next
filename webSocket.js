@@ -4,17 +4,17 @@ async function initializeWebSocket() {
     const platformClient = window.platformClient;
     const apiInstance = new platformClient.NotificationsApi();
 
-    console.log("About to call postNotificationsChannels...");
+    console.log("webSocket.js - About to call postNotificationsChannels...");
 
     apiInstance.postNotificationsChannels({})
         .then(response => {
-            console.log("Received response from postNotificationsChannels:", response);
+            console.log("webSocket.js - Received response from postNotificationsChannels:", response);
 
             channelId = response.id;
             const ws = new WebSocket(response.connectUri);
 
             ws.onmessage = (event) => {
-                console.log("WebSocket message received:", event.data);
+                console.log("webSocket.js - WebSocket message received:", event.data);
                 const data = JSON.parse(event.data);
                 
                 if (data.topicName === `v2.detail.events.conversation.${window.conversationId}.user.start`) {
@@ -22,48 +22,48 @@ async function initializeWebSocket() {
                 }
                 
                 if (data.eventBody.disconnectType) {
-                    console.log("Received disconnectType in WebSocket message. Closing WebSocket.");
+                    console.log("webSocket.js - Received disconnectType in WebSocket message. Closing WebSocket.");
                     ws.close();
                 }
             };
 
             ws.onopen = () => {
-                console.log("WebSocket connection opened.");
+                console.log("webSocket.js - WebSocket connection opened.");
                 subscribeToTopic(channelId, `v2.detail.events.conversation.${window.conversationId}.user.start`);
             };
 
             ws.onerror = (error) => {
-                console.log("WebSocket encountered an error:", error);
+                console.log("webSocket.js - WebSocket encountered an error:", error);
             };
 
             ws.onclose = (event) => {
-                console.log("WebSocket connection closed:", event);
+                console.log("webSocket.js - WebSocket connection closed:", event);
             };
         })
         .catch(err => {
-            console.error("Error during postNotificationsChannels call:", err);
+            console.error("webSocket.js - Error during postNotificationsChannels call:", err);
         });
 }
 
 function subscribeToTopic(channelId, topicName) {
-    console.log("Attempting to subscribe to topic:", topicName);
+    console.log("webSocket.js - Attempting to subscribe to topic:", topicName);
 
-    const platformClient = getPlatformClient();
+    const platformClient = window.platformClient;
     let apiInstance = new platformClient.NotificationsApi();
     
     apiInstance.postNotificationsChannelSubscriptions(channelId, [topicName])
         .then(() => {
-            console.log("Successfully subscribed to topic:", topicName);
+            console.log("webSocket.js - Successfully subscribed to topic:", topicName);
         })
         .catch(err => {
-            console.error("Error during topic subscription:", err);
+            console.error("webSocket.js - Error during topic subscription:", err);
         });
 }
 
 function getConversation(conversationId) {
-    console.log(`Fetching conversation details for ID: ${conversationId}`);
+    console.log(`webSocket.js - Fetching conversation details for ID: ${conversationId}`);
 
-    const platformClient = getPlatformClient();
+    const platformClient = window.platformClient;
 
     const client = platformClient.ApiClient.instance;
 
@@ -72,17 +72,17 @@ function getConversation(conversationId) {
     // Get conversation
     apiInstance.getConversation(conversationId)
       .then((data) => {
-        console.log(`getConversation success! data: ${JSON.stringify(data, null, 2)}`);
+        console.log(`webSocket.js - getConversation success! data: ${JSON.stringify(data, null, 2)}`);
         const participant = data.participants.find(p => p.id === data.participantId);
         if (participant) {
             const aniName = participant.aniName;
             const mediaRole = participant.mediaRoles.length > 0 ? participant.mediaRoles[0] : 'No media role';
             const monitoredParticipantId = participant.monitoredParticipantId || 'No monitored participant';
-            console.log(`Participant Info - ANI Name: ${aniName}, Media Role: ${mediaRole}, Monitored Participant ID: ${monitoredParticipantId}`);
+            console.log(`webSocket.js - Participant Info - ANI Name: ${aniName}, Media Role: ${mediaRole}, Monitored Participant ID: ${monitoredParticipantId}`);
         }
       })
       .catch((err) => {
-        console.log("There was a failure calling getConversation");
+        console.log("webSocket.js - There was a failure calling getConversation");
         console.error(err);
       });
 }
