@@ -80,8 +80,8 @@ function getConversation(conversationId, participantId) {
             console.log(`main.js - Participant Info - ANI Name: ${aniName}, Media Role: ${mediaRole}, Monitored Participant ID: ${monitoredParticipantId}`);
 
             if (participant.aniName === "Monitor") {
+                showToast("Your call is being monitored", "Monitor", 5000);
                 console.log("main.js - showToast triggered");
-                showToast("Your call is being monitored");
             }
         } else {
             console.log('main.js - Participant not found with the given ID:', participantId);
@@ -93,17 +93,13 @@ function getConversation(conversationId, participantId) {
       });
 }
 
-function showToast(message, duration = 5000) {
-    let toast = document.getElementById("toast");
-    if (!toast) {
-        toast = document.createElement("div");
-        toast.id = "toast";
-        document.body.appendChild(toast);
-    }
+function showToast(message, toastId, duration = 5000) {
+    // Define the options for the toast popup
+    var options = {
+        id: toastId,
+        timeout: duration, // Duration in milliseconds
+        showCloseButton: true 
+    };
 
-    toast.innerText = message;
-    toast.className = "show"; 
-    setTimeout(() => {
-        toast.className = toast.className.replace("show", ""); // Hide the toast after the duration
-    }, duration);
+    window.myClientApp.alerting.showToastPopup(message, message, options);
 }
