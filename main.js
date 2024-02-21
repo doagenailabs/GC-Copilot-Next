@@ -81,8 +81,12 @@ function getConversation(conversationId, participantId) {
 
             if (participant.aniName === "Monitor") {
                 showToast("Your call is being monitored", "Monitor", 5000);
-                console.log("main.js - showToast triggered");
+                console.log("main.js - Monitor showToast triggered");
             }
+            if (participant.aniName === "Coach") {
+                showToast("Your call is being coached", "Coach", 5000);
+                console.log("main.js - Coach showToast triggered");
+            }            
         } else {
             console.log('main.js - Participant not found with the given ID:', participantId);
         }
