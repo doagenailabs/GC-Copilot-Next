@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Custom transfers</title>
+    <title>Monitor alerts</title>
     <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
     <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk-de77761d.min.js"></script>
     <script src="startGCSDKs.js"></script>
@@ -49,7 +49,7 @@
                     setWindowConfig(config);
                     const platformClient = await startGCSDKs();
                     window.platformClient = platformClient;
-
+                    console.log('index.html - SDK started');
                     await initializeWebSocket();                    
                 } catch (error) {
                     console.error('Error occurred:', error);
