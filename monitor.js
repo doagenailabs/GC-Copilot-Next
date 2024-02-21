@@ -1,7 +1,7 @@
 let agentParticipantId = '';
 let customerParticipantId = '';
 
-const platformClient = require('platformClient');
+const platformClient = window.platformClient;
 const client = platformClient.ApiClient.instance;
 
 function getParticipantIds() {
