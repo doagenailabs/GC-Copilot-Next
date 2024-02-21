@@ -101,5 +101,5 @@ function showToast(message, toastId, duration = 5000) {
         showCloseButton: true 
     };
 
-    window.myClientApp.alerting.showToastPopup(message, message, options);
+    window.myClientApp.alerting.showToastPopup(toastId, message, options);
 }
