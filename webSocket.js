@@ -61,6 +61,7 @@ function subscribeToTopic(channelId, topicName) {
 }
 
 function getConversation(conversationId, participantId) {
+    console.log(`webSocket.js - getConversation - participantId: ${participantId}`);
     console.log(`webSocket.js - Fetching conversation details for ID: ${conversationId}`);
     const platformClient = window.platformClient;
     const client = platformClient.ApiClient.instance;
