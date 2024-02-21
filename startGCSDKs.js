@@ -48,15 +48,6 @@ function startGCSDKs(clientId) {
                     document.getElementById('span_name').innerText = userDetails.name;
                 });
                 resolve(platformClient);
-                const knowledgeContainer = document.querySelector('.right-section');
-                const caseContainer = document.querySelector('.middle-section');
-                if (window.UseKB) {
-                    knowledgeContainer.style.display = 'block';
-                    caseContainer.style.width = '50%';
-                } else {
-                    knowledgeContainer.style.display = 'none';
-                    caseContainer.style.width = '75%';
-                }
             })
             .catch((err) => {
                 console.error("Error during setup:", err);
