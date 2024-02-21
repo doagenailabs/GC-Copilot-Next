@@ -2,8 +2,8 @@ async function initializeWebSocket() {
     const currentSection = getSection();
     console.log("currentSection.id in initializeWebSocket : " + currentSection.id);
 
-    let channelId;
-    const platformClient = getPlatformClient();
+    let channelId; 
+    const platformClient = window.platformClient;
     const apiInstance = new platformClient.NotificationsApi();
 
     console.log("About to call postNotificationsChannels...");
