@@ -11,6 +11,7 @@ function startGCSDKs(clientId) {
     let redirectUri = 'https://gc-call-monitor-agent-alert.vercel.app';
     let userDetails = null;
     let environment = "mypurecloud.ie";
+    console.log("startGCSDKs.js - start");
     
     window.addEventListener('load', (event) => {
       assignConfiguration();
