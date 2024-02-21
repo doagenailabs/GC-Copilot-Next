@@ -30,12 +30,14 @@
 
         async function start() {
             try {
-                await getConfig()
+                console.log("index.html - start");
                 const config = await getConfig();
+                console.log("index.html - getConfig OK");
                 setWindowConfig(config);
+                console.log("index.html - setWindowConfig OK");
                 const platformClient = await startGCSDKs();
                 window.platformClient = platformClient;
-                console.log('index.html - SDK started');
+                console.log("index.html - SDK started");
                 await initializeWebSocket();                    
             } catch (error) {
                 console.error('Error occurred:', error);
