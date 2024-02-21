@@ -8,7 +8,7 @@ function startGCSDKs(clientId) {
     const qParamGcHostOrigin = 'gcHostOrigin';
     const qParamConversationId = 'conversationId';
     let language = 'en-us';
-    let redirectUri = 'https://doagenesys.github.io/GCCallMonitorAgentAlert';
+    let redirectUri = 'https://gc-call-monitor-agent-alert.vercel.app';
     let userDetails = null;
     let environment = "mypurecloud.ie";
     
@@ -40,7 +40,7 @@ function startGCSDKs(clientId) {
           userDetails = data;
           myClientApp.alerting.showToastPopup(
             `Hello ${userDetails.name}`,
-            'Welcome to custom transfers widget');
+            'Welcome to monitor alerts widget');
         })
         .then(() => {
           document.addEventListener('DOMContentLoaded', () => {
