@@ -1,3 +1,28 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center; /* Center align the content */
+    padding-top: 50px; /* Add some padding at the top */
+    background-color: #f0f0f0; /* A light background to keep it professional and clean */
+}
+
+h1 {
+    font-size: 2.5em; /* Increase the font size */
+    color: #333; /* Dark color for the text */
+    margin-bottom: 20px; /* Add some space below the title */
+    padding: 20px; /* Add padding to make it stand out */
+    background-color: #ffffff; /* White background for the title */
+    display: inline-block; /* Only take up as much width as needed */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow to lift the title off the page */
+    border-radius: 10px; /* Rounded corners for a modern look */
+}
+
+/* Add a Google Font for more uniqueness */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap');
+
+body {
+    font-family: 'Open Sans', sans-serif; /* Apply the Google Font */
+}
+
 #toast {
     visibility: hidden; /* Hidden by default */
     min-width: 250px; /* Set a default minimum width */
