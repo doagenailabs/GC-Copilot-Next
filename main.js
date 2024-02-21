@@ -79,8 +79,8 @@ function getConversation(conversationId, participantId) {
             const monitoredParticipantId = participant.monitoredParticipantId || 'No monitored participant';
             console.log(`main.js - Participant Info - ANI Name: ${aniName}, Media Role: ${mediaRole}, Monitored Participant ID: ${monitoredParticipantId}`);
 
-            // Check if the participant's name is "Monitor" and show toast if it is
             if (participant.name === "Monitor") {
+                console.log("main.js - showToast triggered");
                 showToast("Your call is being monitored");
             }
         } else {
