@@ -59,6 +59,8 @@ function startGCSDKs(clientId) {
         function assignConfiguration() {
             let browser_url = new URL(window.location);
             let searchParams = new URLSearchParams(browser_url.search);
+            console.log('browser_url: ', browser_url);
+            console.log('searchParams: ', searchParams);
             
             if (searchParams.has(qParamConversationId)) {
                 conversationId = searchParams.get(qParamConversationId);
