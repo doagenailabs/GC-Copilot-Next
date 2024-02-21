@@ -18,7 +18,7 @@ async function initializeWebSocket() {
                 const data = JSON.parse(event.data);
                 
                 if (data.topicName === `v2.detail.events.conversation.${window.conversationId}.user.start`) {
-                    getConversation(data.eventBody.conversationId);
+                    getConversation(data.eventBody.conversationId, data.eventBody.participantId);
                 }
                 
                 if (data.eventBody.disconnectType) {
@@ -60,25 +60,26 @@ function subscribeToTopic(channelId, topicName) {
         });
 }
 
-function getConversation(conversationId) {
+function getConversation(conversationId, participantId) {
     console.log(`webSocket.js - Fetching conversation details for ID: ${conversationId}`);
-
     const platformClient = window.platformClient;
-
     const client = platformClient.ApiClient.instance;
-
     let apiInstance = new platformClient.ConversationsApi();
 
     // Get conversation
     apiInstance.getConversation(conversationId)
       .then((data) => {
         console.log(`webSocket.js - getConversation success! data: ${JSON.stringify(data, null, 2)}`);
-        const participant = data.participants.find(p => p.id === data.participantId);
+        // Find the participant by participantId
+        const participant = data.participants.find(p => p.id === participantId);
         if (participant) {
             const aniName = participant.aniName;
             const mediaRole = participant.mediaRoles.length > 0 ? participant.mediaRoles[0] : 'No media role';
             const monitoredParticipantId = participant.monitoredParticipantId || 'No monitored participant';
             console.log(`webSocket.js - Participant Info - ANI Name: ${aniName}, Media Role: ${mediaRole}, Monitored Participant ID: ${monitoredParticipantId}`);
+
+        } else {
+            console.log('webSocket.js - Participant not found with the given ID:', participantId);
         }
       })
       .catch((err) => {
@@ -86,4 +87,3 @@ function getConversation(conversationId) {
         console.error(err);
       });
 }
-
