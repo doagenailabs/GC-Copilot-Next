@@ -97,13 +97,47 @@ function getConversation(conversationId, participantId) {
       });
 }
 
-function showToast(message, toastId, duration = 5000) {
-    // Define the options for the toast popup
-    var options = {
-        id: toastId,
-        timeout: duration, // Duration in milliseconds
-        showCloseButton: true 
-    };
+function getURLParameter(name) {
+    // Helper function to extract URL parameters
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+}
 
-    window.myClientApp.alerting.showToastPopup(toastId, message, options);
+function showToast(message, toastId, duration = 5000) {
+    // Check if the toast is being shown in a Salesforce environment
+    const isSalesforce = getURLParameter('sf') === 'true';
+
+    if (isSalesforce) {
+        // Create a custom toast for Salesforce LWC or other environments different than the native GC UI
+        createCustomToast(message, toastId, duration);
+    } else {
+        // Use clientApp SDK toast logic when not embedded in Salesforce
+        var options = {
+            id: toastId,
+            timeout: duration, 
+            showCloseButton: true 
+        };
+        window.myClientApp.alerting.showToastPopup(toastId, message, options);
+    }
+}
+
+function createCustomToast(message, toastId, duration) {
+    const toastElement = document.createElement('div');
+    toastElement.id = toastId;
+    toastElement.innerText = message;
+    toastElement.style.position = 'fixed';
+    toastElement.style.bottom = '20px';
+    toastElement.style.left = '50%';
+    toastElement.style.transform = 'translateX(-50%)';
+    toastElement.style.backgroundColor = '#333';
+    toastElement.style.color = 'white';
+    toastElement.style.padding = '10px 20px';
+    toastElement.style.borderRadius = '5px';
+    toastElement.style.zIndex = '1000';
+
+    document.body.appendChild(toastElement);
+
+    setTimeout(() => {
+        document.body.removeChild(toastElement);
+    }, duration);
 }
