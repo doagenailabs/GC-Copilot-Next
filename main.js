@@ -111,7 +111,7 @@ function showToast(message, toastId, duration = 5000) {
 
     if (isSalesforce) {
         console.log("main.js - showToast - Creating custom toast for Salesforce LWC or other environments different than the native GC UI.");
-        // Create a custom toast for Salesforce LWC or other environments different than the native GC UI
+        // Create a custom toast for Salesforce LWC
         createCustomToast(message, toastId, duration);
     } else {
         console.log("main.js - showToast - Using clientApp SDK toast logic when not embedded in Salesforce.");
@@ -126,22 +126,13 @@ function showToast(message, toastId, duration = 5000) {
 }
 
 function createCustomToast(message, toastId, duration) {
-    const toastElement = document.createElement('div');
-    toastElement.id = toastId;
-    toastElement.innerText = message;
-    toastElement.style.position = 'fixed';
-    toastElement.style.bottom = '20px';
-    toastElement.style.left = '50%';
-    toastElement.style.transform = 'translateX(-50%)';
-    toastElement.style.backgroundColor = '#333';
-    toastElement.style.color = 'white';
-    toastElement.style.padding = '10px 20px';
-    toastElement.style.borderRadius = '5px';
-    toastElement.style.zIndex = '1000';
-
-    document.body.appendChild(toastElement);
-
-    setTimeout(() => {
-        document.body.removeChild(toastElement);
-    }, duration);
+    // Post message to the parent window (Salesforce LWC)
+    window.parent.postMessage({
+        type: 'SHOW_TOAST',
+        detail: {
+            message: message,
+            toastId: toastId,
+            duration: duration
+        }
+    }, '*'); 
 }
