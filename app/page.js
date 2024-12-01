@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
-import { startGCSDKs } from '@/lib/gcSDKs'
-import { initializeWebSocket } from '@/lib/websocket'
-import AnalysisDisplay from '@/components/AnalysisDisplay'
+import { startGCSDKs } from '../lib/gcSDKs'
+import { initializeWebSocket } from '../lib/websocket'
+import AnalysisDisplay from '../components/AnalysisDisplay'
 
 export default function Home() {
   useEffect(() => {
