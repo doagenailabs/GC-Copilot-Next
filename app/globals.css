@@ -2,4 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-gray-50;
+  }
+}
+
+@layer components {
+  .glass-morphism {
+    @apply bg-white/90 backdrop-blur-sm;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 ease-in-out hover:shadow-lg hover:scale-102;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-200 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-300;
+  }
+}
+
+/* Animation Keyframes */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
