@@ -22,8 +22,10 @@ export default function Home() {
   }, []);
 
   return (
-    <main>
-      <h1>Monitor alerts</h1>
+    <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
+      <h1 className="text-4xl text-gray-800 mb-5 py-5 px-5 bg-white inline-block shadow-md rounded-lg">
+        Monitor alerts
+      </h1>
     </main>
   )
 }
