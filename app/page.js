@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { startGCSDKs } from '@/lib/gcSDKs'
 import { initializeWebSocket } from '@/lib/websocket'
+import AnalysisDisplay from '@/components/AnalysisDisplay'
 
 export default function Home() {
   useEffect(() => {
@@ -24,8 +25,9 @@ export default function Home() {
   return (
     <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
       <h1 className="text-4xl text-gray-800 mb-5 py-5 px-5 bg-white inline-block shadow-md rounded-lg">
-        Monitor alerts
+        Conversation Analysis
       </h1>
+      <AnalysisDisplay />
     </main>
   )
 }
