@@ -1,4 +1,4 @@
-import '@/app/page.module.css'
+import './globals.css'
 
 export const metadata = {
   title: 'Monitor alerts',
