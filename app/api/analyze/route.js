@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import { messageHistory } from '@/lib/messageHistory';
-import { jsonSchema } from '@/lib/analysisSchema';
+import { messageHistory } from '../../../lib/messageHistory';
+import { jsonSchema } from '../../../lib/analysisSchema';
 
 export const runtime = 'edge';
 
