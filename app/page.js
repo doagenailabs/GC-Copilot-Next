@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import AnalysisDisplay from '../components/AnalysisDisplay';
+import { startGCSDKs } from '../lib/gcSDKs';
+import { initializeWebSocket } from '../lib/websocket';
 
 export default function Home() {
   const [initError, setInitError] = useState(null);
@@ -21,13 +23,13 @@ export default function Home() {
           'GCCopilotNext - page.js - OAuth Client ID:',
           process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID
         );
-  
+
         const platformClient = await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
         console.log('GCCopilotNext - page.js - startGCSDKs completed', platformClient);
-  
+
         const ws = await initializeWebSocket();
         console.log('GCCopilotNext - page.js - initializeWebSocket completed', ws);
-  
+
         setIsInitializing(false);
         console.log('GCCopilotNext - page.js - Initialization complete');
       } catch (err) {
