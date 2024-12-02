@@ -11,11 +11,13 @@ export default function RootLayout({ children }) {
       <head>
         <script 
           src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"
-          strategy="beforeInteractive"
+          async={false}
+          defer={false}
         />
         <script 
           src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk-de77761d.min.js"
-          strategy="beforeInteractive"
+          async={false}
+          defer={false}
         />
       </head>
       <body>{children}</body>
