@@ -5,43 +5,27 @@ import { startGCSDKs } from '../lib/gcSDKs'
 import { initializeWebSocket } from '../lib/websocket'
 import AnalysisDisplay from '../components/AnalysisDisplay'
 
-const LOG_PREFIX = 'GCCopilotNext - page.js -';
-const log = (message, ...args) => console.log(`${LOG_PREFIX} ${message}`, ...args);
-const error = (message, ...args) => console.error(`${LOG_PREFIX} ${message}`, ...args);
-const debug = (message, ...args) => console.debug(`${LOG_PREFIX} ${message}`, ...args);
-
 export default function Home() {
-  const [initError, setInitError] = useState(null);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [initError, setInitError] = useState(null)
+  const [isInitializing, setIsInitializing] = useState(true)
 
   useEffect(() => {
     async function start() {
-      debug('Starting application initialization');
-      
       try {
-        // Validate environment variables
         if (!process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID) {
-          throw new Error('OAuth Client ID not configured');
+          throw new Error('OAuth Client ID not configured')
         }
 
-        log('Initializing Genesys Cloud SDKs');
-        await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
-        debug('SDKs initialized successfully');
-
-        log('Initializing WebSocket connection');
-        await initializeWebSocket();
-        log('WebSocket initialized successfully');
-
-        setIsInitializing(false);
-        debug('Application initialization complete');
+        await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID)
+        await initializeWebSocket()
+        setIsInitializing(false)
       } catch (err) {
-        error('Initialization error:', err);
-        setInitError(err.message);
-        setIsInitializing(false);
+        setInitError(err.message)
+        setIsInitializing(false)
       }
     }
 
-    start();
+    start()
 
     // Cleanup function
     return () => {
