@@ -1,3 +1,4 @@
+import Script from 'next/script'
 import './globals.css'
 
 export const metadata = {
@@ -9,17 +10,18 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <script 
-          src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.js"
-          async={false}
-          defer={false}
+        <Script
+          src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"
+          strategy="beforeInteractive"
           crossOrigin="anonymous"
         />
-        <script 
-          src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"
-          async={false}
-          defer={false}
+        <Script
+          src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.js"
+          strategy="beforeInteractive"
           crossOrigin="anonymous"
+          onLoad={() => {
+            window.pcSDKLoaded = true;
+          }}
         />
       </head>
       <body>{children}</body>
