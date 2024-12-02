@@ -17,4 +17,21 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig;
+module.exports = {
+  reactStrictMode: true,
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        os: false,
+        net: false,
+        tls: false,
+        zlib: false,
+        crypto: false,
+      };
+    }
+    return config;
+  },
+};
