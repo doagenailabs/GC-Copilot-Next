@@ -9,13 +9,13 @@ export default function Home() {
   useEffect(() => {
     async function start() {
       try {
-        console.log("page.js - start");
+        console.log("GCCopilotNext - page.js - start");
         const platformClient = await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
         window.platformClient = platformClient;
-        console.log("page.js - SDK started");
+        console.log("GCCopilotNext - page.js - SDK started");
         await initializeWebSocket();                    
       } catch (error) {
-        console.error('Error occurred:', error);
+        console.error('GCCopilotNext - Error occurred:', error);
       }
     }
 
