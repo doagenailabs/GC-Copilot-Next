@@ -38,20 +38,16 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value: `
-              default-src 'self';
-              script-src 'self' 'unsafe-eval' 'unsafe-inline' https://sdk-cdn.mypurecloud.com;
-              style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-              font-src 'self' https://fonts.gstatic.com;
-              connect-src 'self' 
-                https://*.mypurecloud.* 
-                https://*.pure.cloud
-                https://*.us-gov-pure.cloud
-                wss://*.mypurecloud.* 
-                wss://*.pure.cloud
-                wss://*.us-gov-pure.cloud
-                https://api.openai.com;
-              img-src 'self' data: https:;
-              frame-ancestors 'self' https://*.salesforce.com https://*.force.com;
+              default-src * 'unsafe-inline' 'unsafe-eval' data: blob: filesystem:;
+              script-src * 'unsafe-inline' 'unsafe-eval' data: blob: filesystem:;
+              style-src * 'unsafe-inline' data: blob: filesystem:;
+              font-src * data: blob: filesystem:;
+              connect-src * data: blob: filesystem:;
+              img-src * data: blob: filesystem:;
+              frame-src * data: blob: filesystem:;
+              frame-ancestors * data: blob: filesystem:;
+              worker-src * data: blob: filesystem:;
+              media-src * data: blob: filesystem:;
             `.replace(/\s+/g, ' ').trim(),
           },
         ],
