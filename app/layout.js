@@ -1,8 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Monitor alerts',
-  description: 'Genesys Cloud monitor alerts application',
+  title: 'GC Copilot Next',
+  description: 'GC Copilot Next',
 }
 
 export default function RootLayout({ children }) {
