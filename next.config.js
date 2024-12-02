@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  
+
   async headers() {
     return [
       {
@@ -9,16 +9,13 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src * 'unsafe-inline' 'unsafe-eval';"
-          }
+            value: "default-src * 'unsafe-inline' 'unsafe-eval';",
+          },
         ],
       },
     ];
   },
-}
 
-module.exports = {
-  reactStrictMode: true,
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -35,3 +32,5 @@ module.exports = {
     return config;
   },
 };
+
+module.exports = nextConfig;
