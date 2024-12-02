@@ -7,6 +7,7 @@
       "@/lib/*": ["lib/*"],
       "@/app/*": ["app/*"]
     },
-    "jsx": "react"
+    "jsx": "react",
+    "typeRoots": ["./types", "./node_modules/@types"]
   }
 }
