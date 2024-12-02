@@ -9,7 +9,8 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk-cdn.mypurecloud.com;",
+            value:
+              "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk-cdn.mypurecloud.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk-cdn.mypurecloud.com;",
           },
         ],
       },
