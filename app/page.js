@@ -9,29 +9,25 @@ export default function Home() {
 
   useEffect(() => {
     console.log('GCCopilotNext - page.js - useEffect started');
-
+  
     async function start() {
       console.log('GCCopilotNext - page.js - start function called');
       try {
         if (!process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID) {
           throw new Error('OAuth Client ID not configured');
         }
-
+  
         console.log(
           'GCCopilotNext - page.js - OAuth Client ID:',
           process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID
         );
-
-        const { startGCSDKs } = await import('../lib/gcSDKs');
-
-        await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
-        console.log('GCCopilotNext - page.js - startGCSDKs completed');
-
-        const { initializeWebSocket } = await import('../lib/websocket');
-
-        await initializeWebSocket();
-        console.log('GCCopilotNext - page.js - initializeWebSocket completed');
-
+  
+        const platformClient = await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
+        console.log('GCCopilotNext - page.js - startGCSDKs completed', platformClient);
+  
+        const ws = await initializeWebSocket();
+        console.log('GCCopilotNext - page.js - initializeWebSocket completed', ws);
+  
         setIsInitializing(false);
         console.log('GCCopilotNext - page.js - Initialization complete');
       } catch (err) {
@@ -40,12 +36,11 @@ export default function Home() {
         setIsInitializing(false);
       }
     }
-
+  
     start();
-
+  
     return () => {
       console.log('GCCopilotNext - page.js - Component unmounting, cleaning up...');
-      // Add any cleanup logic here if needed
     };
   }, []);
 
