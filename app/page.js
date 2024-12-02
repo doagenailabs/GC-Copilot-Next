@@ -25,14 +25,8 @@ export default function Home() {
         }
 
         log('Initializing Genesys Cloud SDKs');
-        const platformClient = await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
-        
-        if (!platformClient) {
-          throw new Error('Failed to initialize platform client');
-        }
-
-        window.platformClient = platformClient;
-        debug('Platform client initialized and assigned to window');
+        await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
+        debug('SDKs initialized successfully');
 
         log('Initializing WebSocket connection');
         await initializeWebSocket();
@@ -40,7 +34,6 @@ export default function Home() {
 
         setIsInitializing(false);
         debug('Application initialization complete');
-
       } catch (err) {
         error('Initialization error:', err);
         setInitError(err.message);
