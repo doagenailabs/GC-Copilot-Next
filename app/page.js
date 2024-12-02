@@ -4,21 +4,29 @@ import { useEffect, useState } from 'react';
 import AnalysisDisplay from '../components/AnalysisDisplay';
 import { startGCSDKs } from '../lib/gcSDKs';
 import { initializeWebSocket } from '../lib/websocket';
+import ScriptsLoader from '../components/ScriptsLoader';
 
 export default function Home() {
   const [initError, setInitError] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
+
+  const handleScriptsLoaded = () => {
+    setScriptsLoaded(true);
+  };
 
   useEffect(() => {
-    console.log('GCCopilotNext - page.js - useEffect started');
-  
+    if (!scriptsLoaded) return;
+
+    console.log('GCCopilotNext - page.js - SDK scripts loaded');
+
     async function start() {
       console.log('GCCopilotNext - page.js - start function called');
       try {
         if (!process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID) {
           throw new Error('OAuth Client ID not configured');
         }
-  
+
         console.log(
           'GCCopilotNext - page.js - OAuth Client ID:',
           process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID
@@ -38,18 +46,15 @@ export default function Home() {
         setIsInitializing(false);
       }
     }
-  
+
     start();
-  
-    return () => {
-      console.log('GCCopilotNext - page.js - Component unmounting, cleaning up...');
-    };
-  }, []);
+  }, [scriptsLoaded]);
 
   if (isInitializing) {
     console.log('GCCopilotNext - page.js - isInitializing is true, rendering loading message');
     return (
       <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
+        <ScriptsLoader onScriptsLoaded={handleScriptsLoaded} />
         <div className="text-2xl text-gray-600">Initializing...</div>
       </main>
     );
