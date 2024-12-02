@@ -10,16 +10,30 @@ export default function Home() {
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
+    console.log('GCCopilotNext - page.js - useEffect started');
+
     async function start() {
+      console.log('GCCopilotNext - page.js - start function called');
       try {
         if (!process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID) {
           throw new Error('OAuth Client ID not configured');
         }
 
+        console.log(
+          'GCCopilotNext - page.js - OAuth Client ID:',
+          process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID
+        );
+
         await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
+        console.log('GCCopilotNext - page.js - startGCSDKs completed');
+
         await initializeWebSocket();
+        console.log('GCCopilotNext - page.js - initializeWebSocket completed');
+
         setIsInitializing(false);
+        console.log('GCCopilotNext - page.js - Initialization complete');
       } catch (err) {
+        console.error('GCCopilotNext - page.js - Error during initialization:', err);
         setInitError(err.message);
         setIsInitializing(false);
       }
@@ -27,7 +41,6 @@ export default function Home() {
 
     start();
 
-    // Cleanup function
     return () => {
       console.log('GCCopilotNext - page.js - Component unmounting, cleaning up...');
       // Add any cleanup logic here if needed
@@ -35,6 +48,7 @@ export default function Home() {
   }, []);
 
   if (isInitializing) {
+    console.log('GCCopilotNext - page.js - isInitializing is true, rendering loading message');
     return (
       <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
         <div className="text-2xl text-gray-600">Initializing...</div>
@@ -43,12 +57,15 @@ export default function Home() {
   }
 
   if (initError) {
+    console.log('GCCopilotNext - page.js - initError detected:', initError);
     return (
       <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
         <div className="text-2xl text-red-600">Error: {initError}</div>
       </main>
     );
   }
+
+  console.log('GCCopilotNext - page.js - Rendering main content');
 
   return (
     <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
