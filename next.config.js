@@ -1,21 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value:
-              "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk-cdn.mypurecloud.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk-cdn.mypurecloud.com;",
-          },
-        ],
-      },
-    ];
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false
+      };
+    }
+    return config;
   },
-};
-
-module.exports = nextConfig;
+}
