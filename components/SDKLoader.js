@@ -7,10 +7,15 @@ const debug = (message, ...args) => console.debug(`${LOG_PREFIX} ${message}`, ..
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      debug(`Script already loaded: ${src}`);
+      resolve();
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = src;
-    script.async = false;
-    script.defer = false;
+    script.async = true; // Changed to true for better loading
     
     script.onload = () => {
       debug(`Script loaded successfully: ${src}`);
@@ -32,19 +37,21 @@ export default function SDKLoader() {
       try {
         debug('Starting SDK script loading');
         
-        // Load Platform SDK first
+        // Load Platform SDK first and wait for it
         await loadScript('https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js');
         debug('Platform SDK loaded');
         
-        // Then load Client App SDK
-        await loadScript('https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.js');
+        // Then load Client App SDK and wait for it
+        await loadScript('https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.min.js');
         debug('Client App SDK loaded');
         
-        // Set the loaded flag
+        // Set the loaded flag only after both scripts are loaded
         window.pcSDKLoaded = true;
+        window.dispatchEvent(new Event('sdksLoaded'));
         debug('All SDKs loaded successfully');
       } catch (err) {
         debug('Error loading SDKs:', err);
+        window.pcSDKLoaded = false;
       }
     }
 
