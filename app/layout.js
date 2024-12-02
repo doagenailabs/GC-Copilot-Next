@@ -1,4 +1,4 @@
-import ScriptsLoader from '../components/ScriptsLoader'
+import SDKLoader from '../components/SDKLoader'
 import './globals.css'
 
 export const metadata = {
@@ -10,9 +10,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <ScriptsLoader />
       </head>
-      <body>{children}</body>
+      <body>
+        <SDKLoader />
+        {children}
+      </body>
     </html>
   )
 }
