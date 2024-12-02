@@ -1,35 +1,35 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { startGCSDKs } from '../lib/gcSDKs'
-import { initializeWebSocket } from '../lib/websocket'
-import AnalysisDisplay from '../components/AnalysisDisplay'
+import { useEffect, useState } from 'react';
+import { startGCSDKs } from '../lib/gcSDKs';
+import { initializeWebSocket } from '../lib/websocket';
+import AnalysisDisplay from '../components/AnalysisDisplay';
 
 export default function Home() {
-  const [initError, setInitError] = useState(null)
-  const [isInitializing, setIsInitializing] = useState(true)
+  const [initError, setInitError] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     async function start() {
       try {
         if (!process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID) {
-          throw new Error('OAuth Client ID not configured')
+          throw new Error('OAuth Client ID not configured');
         }
 
-        await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID)
-        await initializeWebSocket()
-        setIsInitializing(false)
+        await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
+        await initializeWebSocket();
+        setIsInitializing(false);
       } catch (err) {
-        setInitError(err.message)
-        setIsInitializing(false)
+        setInitError(err.message);
+        setIsInitializing(false);
       }
     }
 
-    start()
+    start();
 
     // Cleanup function
     return () => {
-      debug('Component unmounting, cleaning up...');
+      console.log('GCCopilotNext - page.js - Component unmounting, cleaning up...');
       // Add any cleanup logic here if needed
     };
   }, []);
@@ -37,9 +37,7 @@ export default function Home() {
   if (isInitializing) {
     return (
       <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
-        <div className="text-2xl text-gray-600">
-          Initializing...
-        </div>
+        <div className="text-2xl text-gray-600">Initializing...</div>
       </main>
     );
   }
@@ -47,9 +45,7 @@ export default function Home() {
   if (initError) {
     return (
       <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
-        <div className="text-2xl text-red-600">
-          Error: {initError}
-        </div>
+        <div className="text-2xl text-red-600">Error: {initError}</div>
       </main>
     );
   }
@@ -61,5 +57,5 @@ export default function Home() {
       </h1>
       <AnalysisDisplay />
     </main>
-  )
+  );
 }
