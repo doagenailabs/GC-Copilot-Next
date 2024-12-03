@@ -1,5 +1,5 @@
-import { GenesysProvider } from '../components/GenesysProvider';
 import Script from 'next/script';
+import { GenesysProvider } from '../components/GenesysProvider';
 
 export default function RootLayout({ children }) {
   return (
