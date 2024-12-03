@@ -1,0 +1,49 @@
+body {
+    background-color: #f9fafb;
+    font-family: 'Inter', sans-serif;
+}
+.min-h-screen {
+    min-height: 100vh;
+}
+.text-center {
+    text-align: center;
+}
+.pt-12 {
+    padding-top: 3rem;
+}
+.bg-gray-100 {
+    background-color: #f7fafc;
+}
+.text-4xl {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+}
+.text-gray-800 {
+    color: #2d3748;
+}
+.mb-5 {
+    margin-bottom: 1.25rem;
+}
+.py-5 {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+}
+.px-5 {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+.bg-white {
+    background-color: #fff;
+}
+.inline-block {
+    display: inline-block;
+}
+.shadow-md {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+.mb-4 {
+    margin-bottom: 1rem;
+}
