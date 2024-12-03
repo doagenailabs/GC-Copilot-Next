@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from 'ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { AlertCircle, UserCircle, PhoneCall, MessageSquare, ChevronUp, ChevronDown, BarChart3, AlertTriangle, Loader2, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
 import { subscribeToAnalysis } from '../lib/analysisStore';
 import { subscribeToTranscriptions } from '../lib/transcriptionStore';
