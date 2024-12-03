@@ -7,6 +7,8 @@ const COMPONENT = 'useGenesysCloud';
 const RETRY_INTERVAL = 2000;
 const MAX_RETRIES = 5;
 
+let globalPlatformClient = null;
+
 export function useGenesysCloud() {
   const [state, setState] = useState({
     clientApp: null,
@@ -25,19 +27,29 @@ export function useGenesysCloud() {
       logger.log(COMPONENT, 'Starting SDK initialization');
       
       try {
-        // Dynamically import the platform client
-        logger.debug(COMPONENT, 'Importing Platform Client package');
-        const platformClientModule = await import('purecloud-platform-client-v2');
-        const platformClient = platformClientModule.default;
-        
-        if (!platformClient) {
-          throw new Error('Failed to load Platform Client package');
+        // Only load the module once globally
+        if (!globalPlatformClient) {
+          logger.debug(COMPONENT, 'Loading Platform Client module');
+          const platformClientModule = await import('purecloud-platform-client-v2');
+          globalPlatformClient = platformClientModule;
+          logger.debug(COMPONENT, 'Platform Client module loaded:', globalPlatformClient);
         }
 
-        logger.debug(COMPONENT, 'Platform Client package loaded successfully');
+        // Log the available properties
+        logger.debug(COMPONENT, 'Platform Client properties:', Object.keys(globalPlatformClient));
 
-        // Initialize Platform Client
-        const client = new platformClient.ApiClient();
+        // Try different ways to access the ApiClient
+        let ApiClient;
+        if (globalPlatformClient.ApiClient) {
+          ApiClient = globalPlatformClient.ApiClient;
+        } else if (globalPlatformClient.default?.ApiClient) {
+          ApiClient = globalPlatformClient.default.ApiClient;
+        } else {
+          throw new Error('ApiClient not found in platform client module');
+        }
+
+        // Create a new API client instance
+        const client = new ApiClient();
         const redirectUri = typeof window !== 'undefined' ? window.location.origin : '//';
         
         logger.debug(COMPONENT, 'Configuring Platform Client', {
@@ -61,14 +73,14 @@ export function useGenesysCloud() {
         logger.log(COMPONENT, 'Starting implicit grant login');
         await client.loginImplicitGrant(
           GENESYS_CONFIG.clientId,
-          redirectUri,
-          { state: 'optional-state-value' }
+          redirectUri
         );
         logger.log(COMPONENT, 'Login successful');
 
         // Get user details
         logger.debug(COMPONENT, 'Creating UsersApi instance');
-        const usersApi = new platformClient.UsersApi();
+        const UsersApi = globalPlatformClient.UsersApi || globalPlatformClient.default.UsersApi;
+        const usersApi = new UsersApi();
         
         logger.debug(COMPONENT, 'Fetching user details');
         const userData = await usersApi.getUsersMe();
@@ -97,7 +109,9 @@ export function useGenesysCloud() {
         logger.error(COMPONENT, 'Error details:', {
           message: error.message,
           stack: error.stack,
-          name: error.name
+          name: error.name,
+          platformClientAvailable: !!globalPlatformClient,
+          platformClientKeys: globalPlatformClient ? Object.keys(globalPlatformClient) : []
         });
         
         if (retryCount < MAX_RETRIES && isSubscribed) {
