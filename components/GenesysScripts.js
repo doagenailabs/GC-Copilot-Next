@@ -6,36 +6,41 @@ import { logger } from '../lib/logging';
 
 const COMPONENT = 'GenesysScripts';
 
-// Global state to track SDK loading
-if (typeof window !== 'undefined') {
-  window.genesysSDKsLoaded = {
-    platform: false,
-    clientApp: false
-  };
-}
-
 export default function GenesysScripts() {
   useEffect(() => {
+    // Initialize the tracking object only after the component mounts
+    if (typeof window !== 'undefined') {
+      window.genesysSDKsLoaded = {
+        platform: false,
+        clientApp: false,
+        ready: false
+      };
+    }
+
     logger.log(COMPONENT, 'GenesysScripts mounted');
+
     return () => {
       if (typeof window !== 'undefined') {
-        window.genesysSDKsLoaded = {
-          platform: false,
-          clientApp: false
-        };
+        window.genesysSDKsLoaded = undefined;
       }
     };
   }, []);
 
   const handleScriptLoad = (scriptName) => () => {
+    if (typeof window === 'undefined') return;
+
     logger.log(COMPONENT, `${scriptName} loaded successfully`);
-    if (typeof window !== 'undefined') {
-      if (scriptName === 'Platform SDK') {
-        window.genesysSDKsLoaded.platform = true;
-      } else if (scriptName === 'Client App SDK') {
-        window.genesysSDKsLoaded.clientApp = true;
-      }
-      logger.debug(COMPONENT, 'Current SDK loading status:', window.genesysSDKsLoaded);
+    
+    if (scriptName === 'Platform SDK') {
+      window.genesysSDKsLoaded.platform = true;
+    } else if (scriptName === 'Client App SDK') {
+      window.genesysSDKsLoaded.clientApp = true;
+    }
+
+    // Check if both SDKs are loaded
+    if (window.genesysSDKsLoaded.platform && window.genesysSDKsLoaded.clientApp) {
+      window.genesysSDKsLoaded.ready = true;
+      logger.log(COMPONENT, 'All SDKs loaded successfully');
     }
   };
 
