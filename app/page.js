@@ -1,52 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useGenesysSDK } from '../hooks/useGenesysSDK';
+import { useGenesys } from '../components/GenesysProvider';
 import AnalysisDisplay from '../components/AnalysisDisplay';
-import { startGCSDKs } from '../lib/gcSDKs';
 import { initializeWebSocket } from '../lib/websocket';
+import { useEffect } from 'react';
 
 export default function Home() {
-  const [initError, setInitError] = useState(null);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const { sdkReady, error: sdkError } = useGenesysSDK();
+  const { clientApp, userDetails, isLoading, error } = useGenesys();
 
   useEffect(() => {
-    if (!sdkReady) return;
-
-    async function start() {
-      try {
-        if (!process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID) {
-          throw new Error('OAuth Client ID not configured');
-        }
-
-        const platformClient = await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
-        const ws = await initializeWebSocket();
-        setIsInitializing(false);
-      } catch (err) {
-        console.error('GCCopilotNext - page.js - Error during initialization:', err);
-        setInitError(err.message);
-        setIsInitializing(false);
-      }
+    if (clientApp && userDetails && window.conversationId) {
+      initializeWebSocket().catch(console.error);
     }
+  }, [clientApp, userDetails]);
 
-    start();
-  }, [sdkReady]);
-
-  if (sdkError || initError) {
+  if (isLoading) {
     return (
       <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
-        <div className="text-2xl text-red-600">
-          Error: {sdkError || initError}
-        </div>
+        <div className="text-2xl text-gray-600">Initializing...</div>
       </main>
     );
   }
 
-  if (!sdkReady || isInitializing) {
+  if (error) {
     return (
       <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
-        <div className="text-2xl text-gray-600">Initializing...</div>
+        <div className="text-2xl text-red-600">
+          Error: {error}
+        </div>
       </main>
     );
   }
@@ -56,6 +37,11 @@ export default function Home() {
       <h1 className="text-4xl text-gray-800 mb-5 py-5 px-5 bg-white inline-block shadow-md rounded-lg">
         Conversation Analysis
       </h1>
+      {userDetails && (
+        <div className="mb-4">
+          <p>Welcome, {userDetails.name}!</p>
+        </div>
+      )}
       <AnalysisDisplay />
     </main>
   );
