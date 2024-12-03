@@ -1,3 +1,4 @@
+import { GenesysProvider } from '../components/GenesysProvider';
 import Script from 'next/script';
 
 export default function RootLayout({ children }) {
@@ -15,7 +16,9 @@ export default function RootLayout({ children }) {
           strategy="beforeInteractive"
           id="gc-client-app-sdk"
         />
-        {children}
+        <GenesysProvider>
+          {children}
+        </GenesysProvider>
       </body>
     </html>
   );
