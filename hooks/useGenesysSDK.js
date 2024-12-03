@@ -12,29 +12,21 @@ export const useGenesysSDK = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isBrowser, setIsBrowser] = useState(false);
 
   useEffect(() => {
-    logger.log(COMPONENT, 'Initial mount, setting isBrowser');
-    setIsBrowser(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isBrowser) {
-      logger.log(COMPONENT, 'Not in browser environment, skipping initialization');
-      return;
-    }
-
     const checkSDKs = () => {
-      const hasPlatformClient = !!window.platformClient;
-      const hasClientApp = !!window.purecloud?.apps?.ClientApp;
-      logger.debug(COMPONENT, 'Checking SDKs availability:', {
-        hasPlatformClient,
-        hasClientApp,
-        platformClientType: typeof window.platformClient,
-        pureCloudApps: window.purecloud?.apps
+      if (typeof window === 'undefined') return false;
+      
+      const sdksLoaded = window.genesysSDKsLoaded?.platform && window.genesysSDKsLoaded?.clientApp;
+      const sdksAvailable = window.platformClient && window.purecloud?.apps?.ClientApp;
+      
+      logger.debug(COMPONENT, 'Checking SDKs:', {
+        sdksLoaded,
+        sdksAvailable,
+        loadingStatus: window.genesysSDKsLoaded
       });
-      return hasPlatformClient && hasClientApp;
+      
+      return sdksLoaded && sdksAvailable;
     };
 
     const initializeSDKs = async () => {
@@ -117,57 +109,7 @@ export const useGenesysSDK = () => {
     };
 
     initializeSDKs();
-  }, [isBrowser]);
+  }, []);
 
   return { clientApp, platformClient, userDetails, isLoading, error };
-};
-
-// Helper function to get configuration
-const getConfiguration = async () => {
-  logger.log(COMPONENT, 'Getting configuration');
-  const url = new URL(window.location);
-  const searchParams = new URLSearchParams(url.search);
-  const appName = GENESYS_CONFIG.appName;
-
-  let environment = GENESYS_CONFIG.defaultEnvironment;
-  let language = GENESYS_CONFIG.defaultLanguage;
-  let conversationId = '';
-
-  logger.debug(COMPONENT, 'URL search params:', searchParams.toString());
-
-  // Check URL parameters first
-  if (searchParams.has('gcHostOrigin')) {
-    const gcHostOrigin = searchParams.get('gcHostOrigin');
-    environment = gcHostOrigin.replace('https://apps.', '');
-    localStorage.setItem(`${appName}_environment`, environment);
-    logger.debug(COMPONENT, 'Environment set from URL:', environment);
-  } else {
-    const storedEnv = localStorage.getItem(`${appName}_environment`);
-    if (storedEnv) {
-      environment = storedEnv;
-      logger.debug(COMPONENT, 'Environment retrieved from localStorage:', environment);
-    }
-  }
-
-  if (searchParams.has('langTag')) {
-    language = searchParams.get('langTag');
-    localStorage.setItem(`${appName}_language`, language);
-    logger.debug(COMPONENT, 'Language set from URL:', language);
-  } else {
-    const storedLang = localStorage.getItem(`${appName}_language`);
-    if (storedLang) {
-      language = storedLang;
-      logger.debug(COMPONENT, 'Language retrieved from localStorage:', language);
-    }
-  }
-
-  if (searchParams.has('conversationId')) {
-    conversationId = searchParams.get('conversationId');
-    window.conversationId = conversationId;
-    logger.debug(COMPONENT, 'ConversationId set from URL:', conversationId);
-  }
-
-  const config = { environment, language, conversationId };
-  logger.debug(COMPONENT, 'Final configuration:', config);
-  return config;
 };
