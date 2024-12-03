@@ -7,6 +7,24 @@ const COMPONENT = 'useGenesysCloud';
 const RETRY_INTERVAL = 2000;
 const MAX_RETRIES = 5;
 
+// Helper function to deeply inspect an object's structure
+function inspectObject(obj, prefix = '') {
+  if (!obj) return 'null or undefined';
+  if (typeof obj !== 'object') return typeof obj;
+
+  return Object.keys(obj).reduce((acc, key) => {
+    const value = obj[key];
+    acc[key] = {
+      type: typeof value,
+      isConstructor: typeof value === 'function' && /^[A-Z]/.test(key),
+      hasPrototype: value && typeof value === 'object' && Object.getPrototypeOf(value) !== Object.prototype,
+      ownProperties: value && typeof value === 'object' ? Object.keys(value) : undefined,
+      stringValue: typeof value === 'function' ? value.toString().slice(0, 100) + '...' : undefined
+    };
+    return acc;
+  }, {});
+}
+
 let globalPlatformClient = null;
 
 export function useGenesysCloud() {
@@ -32,23 +50,62 @@ export function useGenesysCloud() {
           logger.debug(COMPONENT, 'Loading Platform Client module');
           const platformClientModule = await import('purecloud-platform-client-v2');
           globalPlatformClient = platformClientModule;
-          logger.debug(COMPONENT, 'Platform Client module loaded:', globalPlatformClient);
+          
+          // Log detailed module structure
+          logger.debug(COMPONENT, 'Platform Client module structure:', {
+            moduleType: typeof platformClientModule,
+            hasDefault: 'default' in platformClientModule,
+            defaultType: typeof platformClientModule.default,
+            keys: Object.keys(platformClientModule),
+            detailed: inspectObject(platformClientModule),
+            defaultDetailed: platformClientModule.default ? inspectObject(platformClientModule.default) : 'no default'
+          });
+
+          // Examine require object if available
+          if (typeof require !== 'undefined') {
+            logger.debug(COMPONENT, 'Require cache:', {
+              hasPlatformClient: require.cache['purecloud-platform-client-v2'],
+              cacheKeys: Object.keys(require.cache)
+            });
+          }
         }
 
-        // Log the available properties
-        logger.debug(COMPONENT, 'Platform Client properties:', Object.keys(globalPlatformClient));
+        // Detailed examination of globalPlatformClient
+        logger.debug(COMPONENT, 'Current Platform Client state:', {
+          hasGlobalClient: !!globalPlatformClient,
+          globalClientType: typeof globalPlatformClient,
+          constructors: Object.keys(globalPlatformClient).filter(key => /^[A-Z]/.test(key)),
+          prototype: globalPlatformClient ? Object.getPrototypeOf(globalPlatformClient) : 'none',
+          detailed: inspectObject(globalPlatformClient)
+        });
 
-        // Try different ways to access the ApiClient
+        // Try to identify ApiClient location
+        const locations = {
+          direct: !!globalPlatformClient?.ApiClient,
+          onDefault: !!globalPlatformClient?.default?.ApiClient,
+          onPrototype: !!Object.getPrototypeOf(globalPlatformClient)?.ApiClient,
+          constructorNames: Object.keys(globalPlatformClient).filter(k => /Client/.test(k))
+        };
+        logger.debug(COMPONENT, 'ApiClient possible locations:', locations);
+
+        // Attempt to get ApiClient constructor
         let ApiClient;
-        if (globalPlatformClient.ApiClient) {
+        if (locations.direct) {
           ApiClient = globalPlatformClient.ApiClient;
-        } else if (globalPlatformClient.default?.ApiClient) {
+          logger.debug(COMPONENT, 'Found ApiClient directly on module');
+        } else if (locations.onDefault) {
           ApiClient = globalPlatformClient.default.ApiClient;
+          logger.debug(COMPONENT, 'Found ApiClient on default export');
         } else {
           throw new Error('ApiClient not found in platform client module');
         }
 
-        // Create a new API client instance
+        logger.debug(COMPONENT, 'ApiClient details:', {
+          type: typeof ApiClient,
+          prototype: ApiClient.prototype ? Object.keys(ApiClient.prototype) : 'no prototype',
+          constructor: ApiClient.toString().slice(0, 100)
+        });
+
         const client = new ApiClient();
         const redirectUri = typeof window !== 'undefined' ? window.location.origin : '//';
         
@@ -111,7 +168,8 @@ export function useGenesysCloud() {
           stack: error.stack,
           name: error.name,
           platformClientAvailable: !!globalPlatformClient,
-          platformClientKeys: globalPlatformClient ? Object.keys(globalPlatformClient) : []
+          platformClientKeys: globalPlatformClient ? Object.keys(globalPlatformClient) : [],
+          moduleState: globalPlatformClient ? inspectObject(globalPlatformClient) : 'no module'
         });
         
         if (retryCount < MAX_RETRIES && isSubscribed) {
@@ -129,10 +187,8 @@ export function useGenesysCloud() {
       }
     };
 
-    // Start initialization
     initializeSDK();
 
-    // Cleanup function
     return () => {
       logger.debug(COMPONENT, 'Cleaning up hook resources');
       isSubscribed = false;
