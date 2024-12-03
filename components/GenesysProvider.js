@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext } from 'react';
-import { useGenesysSDK } from '../hooks/useGenesysSDK';
+import { useGenesysSDK } from '../hooks/useGenesysCloud';
 
 const GenesysContext = createContext({});
 
