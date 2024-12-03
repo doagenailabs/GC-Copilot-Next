@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import * as platformClientPackage from 'purecloud-platform-client-v2';
 import { ClientApp } from 'purecloud-client-app-sdk';
 import { GENESYS_CONFIG } from '../lib/genesysConfig';
 import { logger } from '../lib/logging';
@@ -26,18 +25,25 @@ export function useGenesysCloud() {
       logger.log(COMPONENT, 'Starting SDK initialization');
       
       try {
-        // Initialize Platform Client
-        logger.debug(COMPONENT, 'Setting up Platform Client');
-        logger.debug(COMPONENT, 'Platform Client Package:', platformClient);
+        // Dynamically import the platform client
+        logger.debug(COMPONENT, 'Importing Platform Client package');
+        const platformClientModule = await import('purecloud-platform-client-v2');
+        const platformClient = platformClientModule.default;
+        
+        if (!platformClient) {
+          throw new Error('Failed to load Platform Client package');
+        }
 
-        // Create a new ApiClient instance if it doesn't exist
-        const client = platformClient?.ApiClient?.instance || new platformClient.ApiClient();
+        logger.debug(COMPONENT, 'Platform Client package loaded successfully');
+
+        // Initialize Platform Client
+        const client = new platformClient.ApiClient();
         const redirectUri = typeof window !== 'undefined' ? window.location.origin : '//';
         
         logger.debug(COMPONENT, 'Configuring Platform Client', {
           environment: GENESYS_CONFIG.defaultEnvironment,
           redirectUri,
-          client: !!client
+          clientId: GENESYS_CONFIG.clientId
         });
 
         // Configure the client
@@ -91,9 +97,7 @@ export function useGenesysCloud() {
         logger.error(COMPONENT, 'Error details:', {
           message: error.message,
           stack: error.stack,
-          name: error.name,
-          platformClientAvailable: !!platformClient,
-          apiClientAvailable: !!platformClient?.ApiClient
+          name: error.name
         });
         
         if (retryCount < MAX_RETRIES && isSubscribed) {
@@ -111,21 +115,13 @@ export function useGenesysCloud() {
       }
     };
 
-    // Wait a short moment to ensure module is loaded
-    const initTimeout = setTimeout(() => {
-      if (platformClient) {
-        logger.debug(COMPONENT, 'Platform Client package loaded, starting initialization');
-        initializeSDK();
-      } else {
-        logger.error(COMPONENT, 'Platform Client package not available after initial delay');
-      }
-    }, 100);
+    // Start initialization
+    initializeSDK();
 
     // Cleanup function
     return () => {
       logger.debug(COMPONENT, 'Cleaning up hook resources');
       isSubscribed = false;
-      clearTimeout(initTimeout);
       if (retryTimeout) {
         clearTimeout(retryTimeout);
       }
