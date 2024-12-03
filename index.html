@@ -23,23 +23,37 @@
         <!-- Our app content will go here -->
     </div>
     <script>
-        function start() {
-            const clientId = 'YOUR_CLIENT_ID_HERE'; // Replace with your client ID
-
-            startGCSDKs(clientId)
-                .then(() => {
-                    initializeWebSocket(window.platformClient)
-                        .then(() => {
-                            // Start rendering the UI
-                            renderAnalysisDisplay();
-                        })
-                        .catch(err => {
-                            console.error('Error initializing WebSocket:', err);
-                        });
-                })
-                .catch(err => {
-                    console.error('Error initializing SDKs:', err);
+        function getConfig() {
+            return fetch('/api/getConfig')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Environment vars could not be retrieved');
+                    }
+                    return response.json();
                 });
+        }
+
+        function setWindowConfig(config) {
+            Object.keys(config).forEach(key => {
+                window[key] = config[key];
+            });
+        }
+
+        async function start() {
+            try {
+                console.log("index.html - start");
+                const config = await getConfig();
+                console.log("index.html - getConfig OK");
+                setWindowConfig(config);
+                console.log("index.html - setWindowConfig OK");
+                await startGCSDKs(window.GCclientId);
+                console.log("index.html - SDK started");
+                await initializeWebSocket(window.platformClient);                    
+                console.log("index.html - WebSocket initialized");
+                renderAnalysisDisplay();
+            } catch (error) {
+                console.error('Error occurred:', error);
+            }
         }
 
         start();
