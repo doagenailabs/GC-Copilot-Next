@@ -1,5 +1,4 @@
-import { GenesysProvider } from '../components/GenesysProvider';
-import GenesysScripts from '../components/GenesysScripts';
+import { AppProvider } from '../components/AppProvider';
 
 export const metadata = {
   title: 'GCCopilotNext',
@@ -10,10 +9,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <GenesysScripts />
-        <GenesysProvider>
+        <AppProvider>
           {children}
-        </GenesysProvider>
+        </AppProvider>
       </body>
     </html>
   );
