@@ -4,21 +4,13 @@ import { useEffect, useState } from 'react';
 import AnalysisDisplay from '../components/AnalysisDisplay';
 import { startGCSDKs } from '../lib/gcSDKs';
 import { initializeWebSocket } from '../lib/websocket';
-import ScriptsLoader from '../components/ScriptsLoader';
 
 export default function Home() {
   const [initError, setInitError] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [scriptsLoaded, setScriptsLoaded] = useState(false);
-
-  const handleScriptsLoaded = () => {
-    setScriptsLoaded(true);
-  };
 
   useEffect(() => {
-    if (!scriptsLoaded) return;
-
-    console.log('GCCopilotNext - page.js - SDK scripts loaded');
+    console.log('GCCopilotNext - page.js - useEffect started');
 
     async function start() {
       console.log('GCCopilotNext - page.js - start function called');
@@ -48,13 +40,16 @@ export default function Home() {
     }
 
     start();
-  }, [scriptsLoaded]);
+
+    return () => {
+      console.log('GCCopilotNext - page.js - Component unmounting, cleaning up...');
+    };
+  }, []);
 
   if (isInitializing) {
     console.log('GCCopilotNext - page.js - isInitializing is true, rendering loading message');
     return (
       <main className="min-h-screen font-['Open_Sans'] text-center pt-12 bg-gray-100">
-        <ScriptsLoader onScriptsLoaded={handleScriptsLoaded} />
         <div className="text-2xl text-gray-600">Initializing...</div>
       </main>
     );
