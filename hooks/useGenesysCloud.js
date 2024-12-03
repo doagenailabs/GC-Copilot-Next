@@ -1,31 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ClientApp } from 'purecloud-client-app-sdk';
+import platformClient from 'purecloud-platform-client-v2';
 import { GENESYS_CONFIG } from '../lib/genesysConfig';
 import { logger } from '../lib/logging';
 
 const COMPONENT = 'useGenesysCloud';
 const RETRY_INTERVAL = 2000;
 const MAX_RETRIES = 5;
-
-// Helper function to deeply inspect an object's structure
-function inspectObject(obj, prefix = '') {
-  if (!obj) return 'null or undefined';
-  if (typeof obj !== 'object') return typeof obj;
-
-  return Object.keys(obj).reduce((acc, key) => {
-    const value = obj[key];
-    acc[key] = {
-      type: typeof value,
-      isConstructor: typeof value === 'function' && /^[A-Z]/.test(key),
-      hasPrototype: value && typeof value === 'object' && Object.getPrototypeOf(value) !== Object.prototype,
-      ownProperties: value && typeof value === 'object' ? Object.keys(value) : undefined,
-      stringValue: typeof value === 'function' ? value.toString().slice(0, 100) + '...' : undefined
-    };
-    return acc;
-  }, {});
-}
-
-let globalPlatformClient = null;
 
 export function useGenesysCloud() {
   const [state, setState] = useState({
@@ -45,74 +26,34 @@ export function useGenesysCloud() {
       logger.log(COMPONENT, 'Starting SDK initialization');
       
       try {
-        // Only load the module once globally
-        if (!globalPlatformClient) {
-          logger.debug(COMPONENT, 'Loading Platform Client module');
-          const platformClientModule = await import('purecloud-platform-client-v2');
-          globalPlatformClient = platformClientModule;
-          
-          // Log detailed module structure
-          logger.debug(COMPONENT, 'Platform Client module structure:', {
-            moduleType: typeof platformClientModule,
-            hasDefault: 'default' in platformClientModule,
-            defaultType: typeof platformClientModule.default,
-            keys: Object.keys(platformClientModule),
-            detailed: inspectObject(platformClientModule),
-            defaultDetailed: platformClientModule.default ? inspectObject(platformClientModule.default) : 'no default'
-          });
-
-          // Examine require object if available
-          if (typeof require !== 'undefined') {
-            logger.debug(COMPONENT, 'Require cache:', {
-              hasPlatformClient: require.cache['purecloud-platform-client-v2'],
-              cacheKeys: Object.keys(require.cache)
-            });
-          }
-        }
-
-        // Detailed examination of globalPlatformClient
-        logger.debug(COMPONENT, 'Current Platform Client state:', {
-          hasGlobalClient: !!globalPlatformClient,
-          globalClientType: typeof globalPlatformClient,
-          constructors: Object.keys(globalPlatformClient).filter(key => /^[A-Z]/.test(key)),
-          prototype: globalPlatformClient ? Object.getPrototypeOf(globalPlatformClient) : 'none',
-          detailed: inspectObject(globalPlatformClient)
+        // Log the platformClient object
+        logger.debug(COMPONENT, 'Platform Client import:', {
+          type: typeof platformClient,
+          keys: Object.keys(platformClient),
+          hasApiClient: !!platformClient.ApiClient,
+          hasUsersApi: !!platformClient.UsersApi,
+          prototype: Object.getPrototypeOf(platformClient),
+          constructors: Object.entries(platformClient)
+            .filter(([_, value]) => typeof value === 'function')
+            .map(([key]) => key)
         });
 
-        // Try to identify ApiClient location
-        const locations = {
-          direct: !!globalPlatformClient?.ApiClient,
-          onDefault: !!globalPlatformClient?.default?.ApiClient,
-          onPrototype: !!Object.getPrototypeOf(globalPlatformClient)?.ApiClient,
-          constructorNames: Object.keys(globalPlatformClient).filter(k => /Client/.test(k))
-        };
-        logger.debug(COMPONENT, 'ApiClient possible locations:', locations);
-
-        // Attempt to get ApiClient constructor
-        let ApiClient;
-        if (locations.direct) {
-          ApiClient = globalPlatformClient.ApiClient;
-          logger.debug(COMPONENT, 'Found ApiClient directly on module');
-        } else if (locations.onDefault) {
-          ApiClient = globalPlatformClient.default.ApiClient;
-          logger.debug(COMPONENT, 'Found ApiClient on default export');
-        } else {
-          throw new Error('ApiClient not found in platform client module');
+        if (!platformClient?.ApiClient) {
+          throw new Error('Platform Client module loaded but ApiClient not found');
         }
 
-        logger.debug(COMPONENT, 'ApiClient details:', {
-          type: typeof ApiClient,
-          prototype: ApiClient.prototype ? Object.keys(ApiClient.prototype) : 'no prototype',
-          constructor: ApiClient.toString().slice(0, 100)
-        });
-
-        const client = new ApiClient();
+        // Create API client instance
+        const client = new platformClient.ApiClient();
         const redirectUri = typeof window !== 'undefined' ? window.location.origin : '//';
         
-        logger.debug(COMPONENT, 'Configuring Platform Client', {
-          environment: GENESYS_CONFIG.defaultEnvironment,
-          redirectUri,
-          clientId: GENESYS_CONFIG.clientId
+        logger.debug(COMPONENT, 'Created API client instance', {
+          clientType: typeof client,
+          clientMethods: Object.keys(client),
+          configParams: {
+            environment: GENESYS_CONFIG.defaultEnvironment,
+            redirectUri,
+            clientId: GENESYS_CONFIG.clientId
+          }
         });
 
         // Configure the client
@@ -136,8 +77,10 @@ export function useGenesysCloud() {
 
         // Get user details
         logger.debug(COMPONENT, 'Creating UsersApi instance');
-        const UsersApi = globalPlatformClient.UsersApi || globalPlatformClient.default.UsersApi;
-        const usersApi = new UsersApi();
+        if (!platformClient.UsersApi) {
+          throw new Error('UsersApi not found in platform client');
+        }
+        const usersApi = new platformClient.UsersApi();
         
         logger.debug(COMPONENT, 'Fetching user details');
         const userData = await usersApi.getUsersMe();
@@ -167,9 +110,16 @@ export function useGenesysCloud() {
           message: error.message,
           stack: error.stack,
           name: error.name,
-          platformClientAvailable: !!globalPlatformClient,
-          platformClientKeys: globalPlatformClient ? Object.keys(globalPlatformClient) : [],
-          moduleState: globalPlatformClient ? inspectObject(globalPlatformClient) : 'no module'
+          platformClientState: {
+            type: typeof platformClient,
+            available: !!platformClient,
+            hasApiClient: !!platformClient?.ApiClient,
+            hasUsersApi: !!platformClient?.UsersApi,
+            keys: platformClient ? Object.keys(platformClient) : [],
+            methods: platformClient ? Object.entries(platformClient)
+              .filter(([_, value]) => typeof value === 'function')
+              .map(([key]) => key) : []
+          }
         });
         
         if (retryCount < MAX_RETRIES && isSubscribed) {
