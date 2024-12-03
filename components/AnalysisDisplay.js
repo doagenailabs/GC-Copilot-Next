@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from 'ui/card';
 import { AlertCircle, UserCircle, PhoneCall, MessageSquare, ChevronUp, ChevronDown, BarChart3, AlertTriangle, Loader2, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
-import { subscribeToAnalysis } from '@/lib/analysisStore';
-import { subscribeToTranscriptions } from '@/lib/transcriptionStore';
+import { subscribeToAnalysis } from '../lib/analysisStore';
+import { subscribeToTranscriptions } from '../lib/transcriptionStore';
 
 const TransitionWrapper = ({ children, delay = '0' }) => (
   <div className={`transform transition-all duration-500 ease-out hover:scale-102 ${delay}`}>
