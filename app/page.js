@@ -17,11 +17,6 @@ export default function Home() {
           throw new Error('OAuth Client ID not configured');
         }
 
-        console.log(
-          'GCCopilotNext - page.js - OAuth Client ID:',
-          process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID
-        );
-
         const platformClient = await startGCSDKs(process.env.NEXT_PUBLIC_GC_OAUTH_CLIENT_ID);
         console.log('GCCopilotNext - page.js - startGCSDKs completed', platformClient);
 
