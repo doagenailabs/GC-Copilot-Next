@@ -10,8 +10,6 @@ export default function Home() {
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    console.log('GCCopilotNext - page.js - useEffect started');
-
     async function start() {
       console.log('GCCopilotNext - page.js - start function called');
       try {
