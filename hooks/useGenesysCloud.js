@@ -5,12 +5,10 @@ import { GENESYS_CONFIG } from '../lib/genesysConfig';
 import { logger } from '../lib/logging';
 
 const COMPONENT = 'useGenesysCloud';
-const RETRY_INTERVAL = 2000; // 2 seconds
+const RETRY_INTERVAL = 2000;
 const MAX_RETRIES = 5;
 
 export function useGenesysCloud() {
-  logger.debug(COMPONENT, 'Hook initialized');
-
   const [state, setState] = useState({
     clientApp: null,
     platformClient: null,
@@ -30,16 +28,16 @@ export function useGenesysCloud() {
       try {
         // Initialize Platform Client
         logger.debug(COMPONENT, 'Setting up Platform Client');
-        if (!platformClientPackage?.default?.ApiClient?.instance) {
-          throw new Error('Platform Client package not properly initialized');
-        }
+        logger.debug(COMPONENT, 'Platform Client Package:', platformClient);
 
-        const client = platformClientPackage.default.ApiClient.instance;
+        // Create a new ApiClient instance if it doesn't exist
+        const client = platformClient?.ApiClient?.instance || new platformClient.ApiClient();
         const redirectUri = typeof window !== 'undefined' ? window.location.origin : '//';
         
         logger.debug(COMPONENT, 'Configuring Platform Client', {
           environment: GENESYS_CONFIG.defaultEnvironment,
-          redirectUri
+          redirectUri,
+          client: !!client
         });
 
         // Configure the client
@@ -57,15 +55,18 @@ export function useGenesysCloud() {
         logger.log(COMPONENT, 'Starting implicit grant login');
         await client.loginImplicitGrant(
           GENESYS_CONFIG.clientId,
-          redirectUri
+          redirectUri,
+          { state: 'optional-state-value' }
         );
         logger.log(COMPONENT, 'Login successful');
 
         // Get user details
+        logger.debug(COMPONENT, 'Creating UsersApi instance');
+        const usersApi = new platformClient.UsersApi();
+        
         logger.debug(COMPONENT, 'Fetching user details');
-        const usersApi = new platformClientPackage.default.UsersApi();
         const userData = await usersApi.getUsersMe();
-        logger.debug(COMPONENT, 'User details retrieved', userData);
+        logger.debug(COMPONENT, 'User details retrieved:', userData);
 
         if (isSubscribed) {
           setState({
@@ -90,7 +91,9 @@ export function useGenesysCloud() {
         logger.error(COMPONENT, 'Error details:', {
           message: error.message,
           stack: error.stack,
-          name: error.name
+          name: error.name,
+          platformClientAvailable: !!platformClient,
+          apiClientAvailable: !!platformClient?.ApiClient
         });
         
         if (retryCount < MAX_RETRIES && isSubscribed) {
@@ -108,12 +111,21 @@ export function useGenesysCloud() {
       }
     };
 
-    initializeSDK();
+    // Wait a short moment to ensure module is loaded
+    const initTimeout = setTimeout(() => {
+      if (platformClient) {
+        logger.debug(COMPONENT, 'Platform Client package loaded, starting initialization');
+        initializeSDK();
+      } else {
+        logger.error(COMPONENT, 'Platform Client package not available after initial delay');
+      }
+    }, 100);
 
     // Cleanup function
     return () => {
       logger.debug(COMPONENT, 'Cleaning up hook resources');
       isSubscribed = false;
+      clearTimeout(initTimeout);
       if (retryTimeout) {
         clearTimeout(retryTimeout);
       }
