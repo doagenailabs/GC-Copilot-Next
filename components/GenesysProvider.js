@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext } from 'react';
-import { useGenesysCloud } from '../hooks/useGenesysCloud';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { logger } from '../lib/logging';
+import { useGenesysCloud } from '../hooks/useGenesysCloud';
 
 const COMPONENT = 'GenesysProvider';
 const GenesysContext = createContext({});
@@ -17,16 +17,13 @@ export const useGenesys = () => {
 };
 
 export function GenesysProvider({ children }) {
-  logger.debug(COMPONENT, 'Initializing GenesysProvider');
   const sdkState = useGenesysCloud();
 
-  logger.debug(COMPONENT, 'Current SDK state:', {
-    isLoading: sdkState.isLoading,
-    hasError: !!sdkState.error,
-    hasClientApp: !!sdkState.clientApp,
-    hasPlatformClient: !!sdkState.platformClient,
-    hasUserDetails: !!sdkState.userDetails
-  });
+  useEffect(() => {
+    if (!sdkState.clientApp || !sdkState.platformClient) {
+      logger.warn(COMPONENT, 'Genesys SDKs are not fully initialized yet.');
+    }
+  }, [sdkState.clientApp, sdkState.platformClient]);
 
   return (
     <GenesysContext.Provider value={sdkState}>
