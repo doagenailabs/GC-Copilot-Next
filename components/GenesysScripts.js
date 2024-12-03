@@ -30,6 +30,12 @@ export default function GenesysScripts() {
     if (typeof window === 'undefined') return;
 
     logger.log(COMPONENT, `${scriptName} loaded successfully`);
+    logger.debug(COMPONENT, 'Window objects state:', {
+      hasPlatformClient: !!window.platformClient,
+      hasPurecloud: !!window.purecloud,
+      hasApps: !!window.purecloud?.apps,
+      hasClientApp: !!window.purecloud?.apps?.ClientApp
+    });
     
     if (scriptName === 'Platform SDK') {
       window.genesysSDKsLoaded.platform = true;
@@ -37,10 +43,13 @@ export default function GenesysScripts() {
       window.genesysSDKsLoaded.clientApp = true;
     }
 
-    // Check if both SDKs are loaded
-    if (window.genesysSDKsLoaded.platform && window.genesysSDKsLoaded.clientApp) {
+    // Check if both SDKs are loaded and the objects are available
+    if (window.genesysSDKsLoaded.platform && 
+        window.genesysSDKsLoaded.clientApp && 
+        window.platformClient && 
+        window.purecloud?.apps?.ClientApp) {
       window.genesysSDKsLoaded.ready = true;
-      logger.log(COMPONENT, 'All SDKs loaded successfully');
+      logger.log(COMPONENT, 'All SDKs loaded and objects available');
     }
   };
 
@@ -52,14 +61,14 @@ export default function GenesysScripts() {
     <>
       <Script
         src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         id="gc-platform-sdk"
         onLoad={handleScriptLoad('Platform SDK')}
         onError={handleScriptError('Platform SDK')}
       />
       <Script
         src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.7/purecloud-client-app-sdk.js"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         id="gc-client-app-sdk"
         onLoad={handleScriptLoad('Client App SDK')}
         onError={handleScriptError('Client App SDK')}
