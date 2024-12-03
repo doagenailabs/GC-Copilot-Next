@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { GENESYS_CONFIG } from '../lib/genesysConfig';
+import { GENESYS_CONFIG, getRedirectUri } from '../lib/genesysConfig';
 
 export const useGenesysSDK = () => {
   const [clientApp, setClientApp] = useState(null);
@@ -7,15 +9,27 @@ export const useGenesysSDK = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isBrowser, setIsBrowser] = useState(false);
 
   useEffect(() => {
+    setIsBrowser(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isBrowser) return;
+
     const initializeSDKs = async () => {
       try {
-        if (typeof window === 'undefined') return;
-
         // Wait for SDKs to load
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds
+        
         while (!window.platformClient || !window.purecloud?.apps?.ClientApp) {
+          if (attempts >= maxAttempts) {
+            throw new Error('Genesys Cloud SDKs failed to load after 5 seconds');
+          }
           await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
         }
 
         // Get environment and language from URL or localStorage
@@ -37,7 +51,7 @@ export const useGenesysSDK = () => {
 
         await client.loginImplicitGrant(
           GENESYS_CONFIG.clientId,
-          GENESYS_CONFIG.redirectUri
+          getRedirectUri()
         );
 
         const usersApi = new platformClient.UsersApi();
@@ -46,7 +60,6 @@ export const useGenesysSDK = () => {
         setClientApp(myClientApp);
         setPlatformClient(client);
         setUserDetails(userData);
-        setIsLoading(false);
 
         // Show welcome toast
         myClientApp.alerting.showToastPopup(
@@ -56,12 +69,13 @@ export const useGenesysSDK = () => {
       } catch (err) {
         console.error('Error initializing Genesys SDKs:', err);
         setError(err.message);
+      } finally {
         setIsLoading(false);
       }
     };
 
     initializeSDKs();
-  }, []);
+  }, [isBrowser]);
 
   return { clientApp, platformClient, userDetails, isLoading, error };
 };
