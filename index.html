@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GCCopilotNext</title>
+    <!-- Include Genesys SDK scripts -->
+    <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
+    <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.min.js"></script>
+    <!-- Include our scripts -->
+    <script src="genesysConfig.js"></script>
+    <script src="logging.js"></script>
+    <script src="analysisStore.js"></script>
+    <script src="transcriptionStore.js"></script>
+    <script src="websocket.js"></script>
+    <script src="startGCSDKs.js"></script>
+    <script src="analysisDisplay.js"></script>
+    <script src="main.js"></script>
+    <!-- Include styles -->
+    <link rel="stylesheet" href="globals.css">
+    <link rel="stylesheet" href="page.module.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Our app content will go here -->
+    </div>
+    <script>
+        function start() {
+            const clientId = 'YOUR_CLIENT_ID_HERE'; // Replace with your client ID
+
+            startGCSDKs(clientId)
+                .then(() => {
+                    initializeWebSocket(window.platformClient)
+                        .then(() => {
+                            // Start rendering the UI
+                            renderAnalysisDisplay();
+                        })
+                        .catch(err => {
+                            console.error('Error initializing WebSocket:', err);
+                        });
+                })
+                .catch(err => {
+                    console.error('Error initializing SDKs:', err);
+                });
+        }
+
+        start();
+    </script>
+</body>
+</html>
