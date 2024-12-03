@@ -24,7 +24,13 @@ function startGCSDKs(clientId) {
             .then(() => usersApi.getUsersMe())
             .then(data => {
                 window.userDetails = data;
-                window.GENESYS_CONFIG.clientId = clientId; // Set the clientId
+
+                // Show welcome notification
+                myClientApp.alerting.showToastPopup(
+                    `Hello ${data.name}`,
+                    'Welcome to GCCopilotNext'
+                );
+
                 resolve();
             })
             .catch(err => {
