@@ -10,4 +10,8 @@ const nextConfig = {
     }
     return config;
   },
+  // Ensure the SDK is transpiled
+  transpilePackages: ['purecloud-platform-client-v2', 'purecloud-client-app-sdk']
 }
+
+module.exports = nextConfig;
