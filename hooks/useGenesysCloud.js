@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import platformClient from 'purecloud-platform-client-v2';
+import * as platformClient from 'purecloud-platform-client-v2';
 import { ClientApp } from 'purecloud-client-app-sdk';
+import { useState, useEffect } from 'react';
 import { GENESYS_CONFIG } from '../lib/genesysConfig';
 import { logger } from '../lib/logging';
 
@@ -32,7 +32,9 @@ export function useGenesysCloud() {
           throw new Error('window is undefined');
         }
 
-        if (!platformClient?.ApiClient) {
+        // Check if ApiClient is available
+        if (!platformClient || !platformClient.ApiClient) {
+          console.log('platformClient:', platformClient);
           throw new Error('Platform Client module loaded but ApiClient not found');
         }
 
