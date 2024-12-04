@@ -66,7 +66,7 @@
                 
                 // Set secure configuration
                 const fullConfig = {
-                    ...window._baseGenesysConfig,  // Base config from genesysConfig.js
+                    ...window._baseGenesysConfig,
                     clientId: config.GCclientId,
                 };
                 
@@ -79,8 +79,8 @@
                 
                 window.logger.log('index', 'Window config set successfully');
                 
-                // Initialize SDKs using secure config
-                await startGCSDKs(window.GENESYS_CONFIG.clientId);
+                // Initialize SDKs
+                await startGCSDKs();
                 window.logger.log('index', 'SDK initialized successfully');
                 
                 // Initialize WebSocket
