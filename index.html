@@ -2,61 +2,108 @@
 <html>
 <head>
     <title>GCCopilotNext</title>
-    <!-- Include Genesys SDK scripts -->
-    <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
-    <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.min.js"></script>
-    <!-- Include our scripts in correct order -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://sdk-cdn.mypurecloud.com; script-src 'self' https://sdk-cdn.mypurecloud.com 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    
+    <!-- Third-party SDKs -->
+    <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js" defer></script>
+    <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.min.js" defer></script>
+    
+    <!-- Core Framework -->
     <script src="lib/storeBase.js"></script>
-    <script src="genesysConfig.js"></script>
-    <script src="logging.js"></script>
-    <script src="lib/analysisStore.js"></script>
-    <script src="lib/transcriptionStore.js"></script>
-    <script src="lib/webSocketManager.js"></script>
-    <script src="startGCSDKs.js"></script>
-    <script src="analysisDisplay.js"></script>
-    <script src="main.js"></script>
-    <!-- Include styles -->
+    
+    <!-- Ensure StoreBase is loaded -->
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            if (!window.StoreBase) {
+                console.error('StoreBase failed to load');
+            }
+        });
+    </script>
+    
+    <!-- Application Scripts -->
+    <script src="lib/safeDOM.js" defer></script>
+    <script src="lib/secureWindowConfig.js" defer></script>
+    <script src="genesysConfig.js" defer></script>
+    <script src="logging.js" defer></script>
+    <script src="lib/analysisStore.js" defer></script>
+    <script src="lib/transcriptionStore.js" defer></script>
+    <script src="lib/webSocketManager.js" defer></script>
+    <script src="startGCSDKs.js" defer></script>
+    <script src="analysisDisplay.js" defer></script>
+    <script src="uiCard.js" defer></script>
+    <script src="main.js" defer></script>
+    
+    <!-- Styles -->
     <link rel="stylesheet" href="styles/globals.css">
 </head>
 <body>
     <div id="app">
-        <!-- Our app content will go here -->
+        <!-- App content -->
     </div>
+    
     <script>
-        function getConfig() {
-            return fetch('/api/getConfig')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Environment vars could not be retrieved');
-                    }
-                    return response.json();
-                });
-        }
-
-        function setWindowConfig(config) {
-            Object.keys(config).forEach(key => {
-                window[key] = config[key];
-            });
-        }
-
         async function start() {
             try {
                 console.log("index.html - start");
-                const config = await getConfig();
+                const config = await fetch('/api/getConfig').then(r => r.json());
                 console.log("index.html - getConfig OK");
-                setWindowConfig(config);
+                
+                // Wait for DOM and scripts to be ready
+                await new Promise(resolve => {
+                    if (document.readyState === 'complete' && window.StoreBase) {
+                        resolve();
+                    } else {
+                        window.addEventListener('load', () => {
+                            if (window.StoreBase) {
+                                resolve();
+                            } else {
+                                console.error('StoreBase not loaded after window load');
+                            }
+                        });
+                    }
+                });
+                
+                // Set window config
+                Object.keys(config).forEach(key => {
+                    window[key] = config[key];
+                });
                 console.log("index.html - setWindowConfig OK");
+                
+                // Initialize SDKs
                 await startGCSDKs(window.GCclientId);
                 console.log("index.html - SDK started");
+                
+                // Initialize WebSocket
                 await initializeWebSocket(window.platformClient);                    
                 console.log("index.html - WebSocket initialized");
+                
+                // Render UI
                 renderAnalysisDisplay();
+                
             } catch (error) {
                 console.error('Error occurred:', error);
+                // Show user-friendly error message
+                document.getElementById('app').innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #ff0000;">
+                        Unable to initialize application. Please refresh the page or contact support.
+                        ${error.message ? `<br><small>Error: ${error.message}</small>` : ''}
+                    </div>
+                `;
             }
         }
 
-        start();
+        // Start app when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', start);
+        } else {
+            start();
+        }
     </script>
 </body>
 </html>
