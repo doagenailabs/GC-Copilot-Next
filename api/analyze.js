@@ -1,6 +1,49 @@
 const OpenAI = require('openai');
 const { messageHistory } = require('../lib/messageHistory');
 const { jsonSchema } = require('../lib/analysisSchema');
+const rateLimit = require('express-rate-limit');
+
+// Rate limiting middleware
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+
+// Input validation
+const validateOpenAIParams = (params) => {
+    const { model, maxTokens, temperature } = params;
+    
+    if (!model || typeof model !== 'string') {
+        throw new Error('Invalid model parameter');
+    }
+    
+    if (!Number.isInteger(maxTokens) || maxTokens < 1 || maxTokens > 4096) {
+        throw new Error('Invalid maxTokens parameter');
+    }
+    
+    if (typeof temperature !== 'number' || temperature < 0 || temperature > 2) {
+        throw new Error('Invalid temperature parameter');
+    }
+
+    return true;
+};
+
+const validateTranscriptionData = (data) => {
+    if (!Array.isArray(data)) {
+        throw new Error('Transcription data must be an array');
+    }
+
+    data.forEach((item, index) => {
+        if (!item.text || typeof item.text !== 'string') {
+            throw new Error(`Invalid text in transcription data at index ${index}`);
+        }
+        if (!item.channel || !['EXTERNAL', 'INTERNAL'].includes(item.channel)) {
+            throw new Error(`Invalid channel in transcription data at index ${index}`);
+        }
+    });
+
+    return true;
+};
 
 module.exports = async (req, res) => {
     const LOG_PREFIX = 'GCCopilotNext - analyze.js -';
@@ -8,56 +51,66 @@ module.exports = async (req, res) => {
     const error = (message, ...args) => console.error(`${LOG_PREFIX} ${message}`, ...args);
     const debug = (message, ...args) => console.debug(`${LOG_PREFIX} ${message}`, ...args);
 
+    // Apply rate limiting
+    await apiLimiter(req, res);
+
     try {
         debug('Processing POST request');
 
         // Validate request method
         if (req.method !== 'POST') {
-            res.status(405).json({ error: 'Method Not Allowed' });
-            return;
+            return res.status(405).json({ 
+                error: 'Method Not Allowed',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // Validate CSRF token
+        const csrfToken = req.headers['x-csrf-token'];
+        if (!csrfToken || !validateCsrfToken(csrfToken)) {
+            return res.status(403).json({ 
+                error: 'Invalid CSRF token',
+                timestamp: new Date().toISOString()
+            });
         }
 
         // Validate request body
-        if (!req.body) {
-            throw new Error('Request body is empty');
-        }
-
-        const data = req.body;
-
-        if (!data.transcriptionData) {
+        if (!req.body || !req.body.transcriptionData) {
             throw new Error('transcriptionData is required');
         }
 
-        debug('Received transcription data:', data.transcriptionData);
+        debug('Received transcription data:', req.body.transcriptionData);
 
         // Process transcription data
         try {
-            const parsedData = JSON.parse(data.transcriptionData);
-            if (!Array.isArray(parsedData)) {
-                throw new Error('Invalid transcription data format');
-            }
-            debug('Transcription data parsed successfully');
+            const parsedData = JSON.parse(req.body.transcriptionData);
+            validateTranscriptionData(parsedData);
+            debug('Transcription data parsed and validated successfully');
 
-            // Add messages to history
+            // Add messages to history with proper sanitization
             parsedData.forEach(transcript => {
-                messageHistory.addMessage('user', transcript.text,
+                const sanitizedText = sanitizeInput(transcript.text);
+                messageHistory.addMessage('user', sanitizedText,
                     transcript.channel === 'EXTERNAL' ? 'Customer' : 'Agent');
             });
             debug('Messages added to history');
 
-            // Prepare OpenAI request
+            // Prepare and validate OpenAI request parameters
             const model = process.env.OPENAI_MODEL || 'gpt-4';
             const maxTokens = parseInt(process.env.OPENAI_MAX_COMPLETION_TOKENS || '2048');
             const temperature = parseFloat(process.env.OPENAI_TEMPERATURE || '0.2');
 
-            debug('OpenAI request parameters:', { model, maxTokens, temperature });
+            validateOpenAIParams({ model, maxTokens, temperature });
+            debug('OpenAI request parameters validated:', { model, maxTokens, temperature });
 
-            // Initialize OpenAI client
+            // Initialize OpenAI client with error handling
             const openai = new OpenAI({
                 apiKey: process.env.OPENAI_API_KEY,
+                timeout: 30000, // 30 second timeout
+                maxRetries: 3
             });
 
-            // Create completion
+            // Create completion with enhanced error handling
             const completion = await openai.chat.completions.create({
                 model,
                 messages: messageHistory.getMessages(),
@@ -72,21 +125,32 @@ module.exports = async (req, res) => {
 
             debug('OpenAI stream created successfully');
 
-            // Return streaming response
+            // Set security headers
             res.setHeader('Content-Type', 'text/event-stream');
-            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Cache-Control', 'no-cache, no-transform');
+            res.setHeader('X-Content-Type-Options', 'nosniff');
             res.setHeader('Connection', 'keep-alive');
+
+            // Handle stream errors
+            completion.body.on('error', (streamError) => {
+                error('Stream error:', streamError);
+                res.end();
+            });
+
             completion.body.pipe(res);
 
         } catch (parseError) {
             error('Error processing transcription data:', parseError);
-            res.status(400).json({ error: 'Invalid transcription data format' });
+            res.status(400).json({
+                error: 'Invalid transcription data format',
+                message: parseError.message,
+                timestamp: new Date().toISOString()
+            });
         }
 
     } catch (err) {
         error('API route error:', err);
 
-        // Prepare error response with detailed information
         const errorResponse = {
             error: 'Internal Server Error',
             message: err instanceof Error ? err.message : 'Unknown error',
@@ -94,7 +158,7 @@ module.exports = async (req, res) => {
             requestId: require('crypto').randomUUID()
         };
 
-        if (err instanceof Error && err.cause) {
+        if (process.env.NODE_ENV === 'development' && err instanceof Error && err.cause) {
             errorResponse.cause = err.cause;
         }
 
