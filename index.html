@@ -5,6 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <!-- Core logging must be loaded first -->
+    <script src="logging.js"></script>
+    
     <!-- SDK Loading Debug Script -->
     <script>
         window.sdkDebug = {
@@ -20,7 +23,7 @@
                 timeElapsed: timeElapsed,
                 event: event
             });
-            console.log(`[SDK Debug ${timeElapsed}ms]`, event);
+            window.logger.debug('SDKLoader', `SDK Event [${timeElapsed}ms]`, event);
         }
     </script>
     
@@ -34,8 +37,7 @@
     
     <!-- Verify SDK Loading -->
     <script>
-        logSDKEvent({
-            type: 'verification',
+        window.logger.debug('SDKLoader', 'Verifying SDK initialization', {
             platformClient: {
                 exists: !!window.platformClient,
                 type: typeof window.platformClient
@@ -50,19 +52,16 @@
     
     <!-- Core Framework -->
     <script src="lib/storeBase.js" 
-            onload="logSDKEvent({type: 'load', component: 'StoreBase', status: 'success'})"
-            onerror="logSDKEvent({type: 'load', component: 'StoreBase', status: 'error'})"></script>
+            onload="window.logger.debug('SDKLoader', 'StoreBase loaded successfully')"
+            onerror="window.logger.error('SDKLoader', 'Failed to load StoreBase')"></script>
     
     <!-- Ensure StoreBase is loaded -->
     <script>
         window.addEventListener('DOMContentLoaded', function() {
-            logSDKEvent({
-                type: 'check',
-                component: 'StoreBase',
-                exists: !!window.StoreBase
-            });
             if (!window.StoreBase) {
-                window.logger?.error('index', 'StoreBase failed to load');
+                window.logger.error('index', 'StoreBase failed to load');
+            } else {
+                window.logger.debug('index', 'StoreBase loaded and verified');
             }
         });
     </script>
@@ -71,7 +70,6 @@
     <script src="lib/safeDOM.js" defer></script>
     <script src="lib/secureWindowManager.js" defer></script>
     <script src="lib/genesysConfig.js" defer></script>
-    <script src="logging.js" defer></script>
     <script src="lib/analysisStore.js" defer></script>
     <script src="lib/transcriptionStore.js" defer></script>
     <script src="lib/webSocketManager.js" defer></script>
@@ -102,17 +100,8 @@
                 const sdkStatus = window.sdkDebug.events
                     .map(event => {
                         const timeStr = `[${event.timeElapsed}ms]`;
-                        let eventStr = '';
-                        
-                        if (event.event.type === 'verification') {
-                            eventStr = 'SDK Verification - ' +
-                                `PlatformClient: ${event.event.platformClient.exists}, ` +
-                                `Purecloud Apps: ${event.event.purecloud.hasApps}`;
-                        } else {
-                            eventStr = `${event.event.type}: ${event.event.sdk || event.event.component} ` +
-                                `(${event.event.status || 'checked'})`;
-                        }
-                        
+                        const eventStr = `${event.event.type}: ${event.event.sdk || event.event.component} ` +
+                            `(${event.event.status || 'checked'})`;
                         return `${timeStr} ${eventStr}`;
                     })
                     .join('<br>');
@@ -129,6 +118,7 @@
 
         async function start() {
             try {
+                window.logger.info('index', 'Application initialization starting');
                 updateLoadingStatus('Checking SDK availability...');
                 
                 // SDK check
@@ -145,20 +135,17 @@
                     }
                 };
 
-                logSDKEvent({
-                    type: 'startup',
-                    status: 'checking',
-                    sdkStatus: sdkStatus
-                });
+                window.logger.debug('index', 'SDK status check', sdkStatus);
 
                 if (!sdkStatus.platformClient.exists || !sdkStatus.purecloud.exists || !sdkStatus.purecloud.hasApps) {
                     throw new Error('Genesys Cloud SDKs failed to load: ' + 
                         JSON.stringify(sdkStatus, null, 2));
                 }
 
+                window.logger.info('index', 'SDK check passed, fetching configuration');
                 updateLoadingStatus('Fetching configuration...');
                 const config = await fetch('/api/getConfig').then(r => r.json());
-                window.logger.log('index', 'Config retrieved successfully');
+                window.logger.debug('index', 'Configuration retrieved', config);
                 
                 updateLoadingStatus('Waiting for DOM and scripts...');
                 await new Promise(resolve => {
@@ -176,6 +163,7 @@
                     }
                 });
                 
+                window.logger.info('index', 'Setting up application configuration');
                 updateLoadingStatus('Setting up configuration...');
                 const fullConfig = {
                     ...window._baseGenesysConfig,
@@ -186,29 +174,40 @@
                 window.logsEnabled = config.logsEnabled;
                 window.maxHistoryMessages = config.maxHistoryMessages;
                 
+                window.logger.info('index', 'Initializing Genesys Cloud SDKs');
                 updateLoadingStatus('Initializing SDKs...');
                 await startGCSDKs();
                 
+                window.logger.info('index', 'Establishing WebSocket connection');
                 updateLoadingStatus('Establishing WebSocket connection...');
                 await initializeWebSocket(window.platformClient);
                 
+                window.logger.info('index', 'Rendering application UI');
                 updateLoadingStatus('Rendering UI...');
                 renderAnalysisDisplay();
                 
                 // Clear loading status on success
                 document.getElementById('loading-status').style.display = 'none';
+                window.logger.info('index', 'Application initialization completed successfully');
                 
             } catch (error) {
-                window.logger?.error('index', 'Application initialization failed:', error);
-                const errorDetails = error.stack || error.message || 'Unknown error';
-                updateLoadingStatus(`Initialization failed: ${errorDetails}`, true);
+                window.logger.error('index', 'Application initialization failed', {
+                    error: error.message,
+                    stack: error.stack,
+                    sdkDebug: window.sdkDebug.events
+                });
+                updateLoadingStatus(`Initialization failed: ${error.message}`, true);
             }
         }
 
         // Start app when DOM is loaded
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', start);
+            document.addEventListener('DOMContentLoaded', () => {
+                window.logger.debug('index', 'DOM Content Loaded, starting application');
+                start();
+            });
         } else {
+            window.logger.debug('index', 'DOM already loaded, starting application immediately');
             start();
         }
     </script>
