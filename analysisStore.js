@@ -1,33 +1,31 @@
 (function() {
-    class TranscriptionStore extends window.StoreBase {
+    const AnalysisStore = class extends window.StoreBase {
         constructor() {
             super();
-            this.transcriptionHistory = [];
-            this.MAX_HISTORY = 50;
+            this.currentAnalysis = '';
         }
 
-        updateTranscriptionHistory(transcript) {
-            if (!transcript || !transcript.text || !transcript.channel) {
-                console.error('Invalid transcript');
+        updateAnalysis(text) {
+            if (typeof text !== 'string') {
+                console.error('Analysis text must be a string');
                 return;
             }
-            this.transcriptionHistory.push(transcript);
-            if (this.transcriptionHistory.length > this.MAX_HISTORY) {
-                this.transcriptionHistory.shift();
-            }
-            this.notifyListeners([...this.transcriptionHistory]);
+            this.currentAnalysis = text;
+            this.notifyListeners(this.currentAnalysis);
         }
 
-        getCurrentTranscriptionHistory() {
-            return [...this.transcriptionHistory];
+        getCurrentAnalysis() {
+            return this.currentAnalysis;
         }
-    }
-
-    const store = new TranscriptionStore();
-    
-    window.transcriptionStore = {
-        updateTranscriptionHistory: store.updateTranscriptionHistory.bind(store),
-        subscribeToTranscriptions: store.addListener.bind(store),
-        getCurrentTranscriptionHistory: store.getCurrentTranscriptionHistory.bind(store)
     };
+
+    const store = new AnalysisStore();
+    
+    window.analysisStore = {
+        updateAnalysis: store.updateAnalysis.bind(store),
+        subscribeToAnalysis: store.addListener.bind(store),
+        getCurrentAnalysis: store.getCurrentAnalysis.bind(store)
+    };
+
+    Object.freeze(window.analysisStore);
 })();
