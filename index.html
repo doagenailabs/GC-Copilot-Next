@@ -14,7 +14,7 @@
             loadStartTime: Date.now(),
             events: []
         };
-
+    
         function logSDKEvent(event) {
             const timestamp = Date.now();
             const timeElapsed = timestamp - window.sdkDebug.loadStartTime;
@@ -27,13 +27,18 @@
         }
     </script>
     
-    <!-- GC SDKs -->
+    <!-- Core SDKs - These must load and initialize first -->
     <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js" 
             onload="logSDKEvent({type: 'load', sdk: 'platformClient', status: 'success'})"
             onerror="logSDKEvent({type: 'load', sdk: 'platformClient', status: 'error'})"></script>
     <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk-de77761d.min.js"
             onload="logSDKEvent({type: 'load', sdk: 'clientApp', status: 'success'})"
             onerror="logSDKEvent({type: 'load', sdk: 'clientApp', status: 'error'})"></script>
+    
+    <!-- Core Framework - These need to be available immediately -->
+    <script src="lib/storeBase.js"></script>
+    <script src="lib/startGCSDKs.js"></script>
+    <script src="lib/genesysConfig.js"></script>
     
     <!-- Verify SDK Loading -->
     <script>
@@ -50,30 +55,12 @@
         });
     </script>
     
-    <!-- Core Framework -->
-    <script src="lib/storeBase.js" 
-            onload="window.logger.debug('SDKLoader', 'StoreBase loaded successfully')"
-            onerror="window.logger.error('SDKLoader', 'Failed to load StoreBase')"></script>
-    
-    <!-- Ensure StoreBase is loaded -->
-    <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            if (!window.StoreBase) {
-                window.logger.error('index', 'StoreBase failed to load');
-            } else {
-                window.logger.debug('index', 'StoreBase loaded and verified');
-            }
-        });
-    </script>
-    
-    <!-- Application Scripts -->
+    <!-- Application Scripts - These can be deferred -->
     <script src="lib/safeDOM.js" defer></script>
     <script src="lib/secureWindowManager.js" defer></script>
-    <script src="lib/genesysConfig.js" defer></script>
     <script src="lib/analysisStore.js" defer></script>
     <script src="lib/transcriptionStore.js" defer></script>
     <script src="lib/webSocketManager.js" defer></script>
-    <script src="lib/startGCSDKs.js" defer></script>
     <script src="lib/analysisDisplay.js" defer></script>
     <script src="lib/uiCard.js" defer></script>
     <script src="main.js" defer></script>
