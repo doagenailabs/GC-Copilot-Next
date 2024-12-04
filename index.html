@@ -5,11 +5,13 @@
     <!-- Include Genesys SDK scripts -->
     <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
     <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.min.js"></script>
-    <!-- Include our scripts -->
+    <!-- Include our scripts in correct order -->
+    <script src="lib/storeBase.js"></script>
     <script src="genesysConfig.js"></script>
     <script src="logging.js"></script>
-    <script src="analysisStore.js"></script>
-    <script src="transcriptionStore.js"></script>
+    <script src="lib/analysisStore.js"></script>
+    <script src="lib/transcriptionStore.js"></script>
+    <script src="lib/webSocketManager.js"></script>
     <script src="startGCSDKs.js"></script>
     <script src="analysisDisplay.js"></script>
     <script src="main.js"></script>
