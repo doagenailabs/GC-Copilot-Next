@@ -5,22 +5,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self' https://sdk-cdn.mypurecloud.com;
-        script-src 'self' https://sdk-cdn.mypurecloud.com https://vercel.live 'unsafe-inline';
-        style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
-        font-src 'self' https://fonts.gstatic.com;
-        img-src 'self' data: https:;
-        connect-src 'self' 
-            https://*.mypurecloud.* 
-            https://*.pure.cloud 
-            https://*.us-gov-pure.cloud 
-            wss://*.mypurecloud.* 
-            wss://*.pure.cloud 
-            wss://*.us-gov-pure.cloud">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    
     <!-- Third-party SDKs -->
     <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js" defer></script>
     <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.min.js" defer></script>
@@ -39,15 +23,15 @@
     
     <!-- Application Scripts -->
     <script src="lib/safeDOM.js" defer></script>
-    <script src="lib/secureWindowConfig.js" defer></script>
-    <script src="genesysConfig.js" defer></script>
+    <script src="lib/secureWindowManager.js" defer></script>
+    <script src="lib/genesysConfig.js" defer></script>
     <script src="logging.js" defer></script>
     <script src="lib/analysisStore.js" defer></script>
     <script src="lib/transcriptionStore.js" defer></script>
     <script src="lib/webSocketManager.js" defer></script>
-    <script src="startGCSDKs.js" defer></script>
-    <script src="analysisDisplay.js" defer></script>
-    <script src="uiCard.js" defer></script>
+    <script src="lib/startGCSDKs.js" defer></script>
+    <script src="lib/analysisDisplay.js" defer></script>
+    <script src="lib/uiCard.js" defer></script>
     <script src="main.js" defer></script>
     
     <!-- Styles -->
