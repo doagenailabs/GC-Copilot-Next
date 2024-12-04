@@ -1,11 +1,12 @@
 const OpenAI = require('openai');
-const { messageHistory } = require('../lib/messageHistory');
+const MessageHistory = require('../lib/messageHistory');
+const analyzeSystemPrompt = require('../lib/analyzeSystemPrompt');
 const { jsonSchema } = require('../lib/analysisSchema');
 const { csrfProtection } = require('./middleware/csrfProtection');
 const rateLimit = require('express-rate-limit');
 const sanitizeHtml = require('sanitize-html');
+const crypto = require('crypto');
 
-// Rate limiting middleware
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100 // limit each IP to 100 requests per windowMs
@@ -92,7 +93,16 @@ module.exports = [apiLimiter, csrfProtection, async (req, res) => {
             validateTranscriptionData(parsedData);
             debug('Transcription data parsed and validated successfully');
 
-            // Add messages to history with proper sanitization
+            const messageHistory = new MessageHistory({
+                maxMessages: parseInt(process.env.MAX_HISTORY_MESSAGES, 10) || 5,
+                systemPrompt: analyzeSystemPrompt,
+                logger: {
+                    log: (message, ...args) => console.log('messageHistory', message, ...args),
+                    error: (message, ...args) => console.error('messageHistory', message, ...args),
+                    debug: (message, ...args) => console.debug('messageHistory', message, ...args)
+                }
+            });
+
             parsedData.forEach(transcript => {
                 const sanitizedText = sanitizeInput(transcript.text);
                 messageHistory.addMessage('user', sanitizedText,
@@ -163,7 +173,7 @@ module.exports = [apiLimiter, csrfProtection, async (req, res) => {
             error: 'Internal Server Error',
             message: err instanceof Error ? err.message : 'Unknown error',
             timestamp: new Date().toISOString(),
-            requestId: require('crypto').randomUUID()
+            requestId: crypto.randomUUID()
         };
 
         if (err instanceof Error && err.cause) {
