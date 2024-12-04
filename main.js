@@ -238,23 +238,31 @@ async function analyzeTranscripts(recentTranscripts) {
             payloadSize: requestBody.length
         });
 
-        const response = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-csrf-token': window.csrfToken
-            },
-            body: requestBody
-        });
+        let response;
+        const maxRetries = 3;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-csrf-token': window.csrfToken
+                    },
+                    body: requestBody
+                });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            window.logger.error('main', 'Analysis API error response:', {
-                status: response.status,
-                statusText: response.statusText,
-                errorData
-            });
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                break; // Exit loop if successful
+            } catch (error) {
+                window.logger.error('main', `Attempt ${attempt} failed for analysis API:`, {
+                    error: error.message
+                });
+                if (attempt === maxRetries) {
+                    throw new Error('Max retries reached for analysis API');
+                }
+            }
         }
 
         window.logger.debug('main', 'Starting stream processing of analysis response');
