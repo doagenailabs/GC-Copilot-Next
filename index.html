@@ -48,27 +48,46 @@
                 window[key] = config[key];
             });
         }
-
+    
         async function start() {
             try {
                 console.log('Starting application, fetching config...');
                 const config = await getConfig();
-                
+    
                 setWindowConfig(config);
-                
-                // Verify logging is enabled
-                console.log('Config received:', config);
-                console.log('Logs enabled:', window.logsEnabled);
-                
+    
+                // Define required parameters
+                const requiredParams = ['langTag', 'gcTargetEnv', 'gcHostOrigin', 'conversationId'];
+                const urlParams = new URLSearchParams(window.location.search);
+                const missingParams = requiredParams.filter(param => !urlParams.has(param));
+    
+                // Log all URL parameters
+                window.logger.debug('start', 'Parsed URL parameters:', Object.fromEntries(urlParams.entries()));
+    
+                // Check for missing parameters
+                if (missingParams.length > 0) {
+                    throw new Error(`Missing required URL parameters: ${missingParams.join(', ')}`);
+                }
+    
+                // Extract parameters and set them on the window object
+                requiredParams.forEach(param => {
+                    window[param] = urlParams.get(param);
+                    window.logger.info('start', `Parameter "${param}" set to:`, window[param]);
+                });
+    
+                if (!window.conversationId) {
+                    throw new Error('Missing conversationId in URL parameters');
+                }
+    
                 window.logger.info('index', 'Starting application with config:', config);
-                
+    
                 const platformClient = await startGCSDKs(config.GCclientId);
                 window.platformClient = platformClient;
                 window.logger.info('index', 'SDK initialized');
-                
+    
                 await initializeWebSocket();
                 window.logger.info('index', 'WebSocket initialized');
-                
+    
                 renderAnalysisDisplay();
                 window.logger.info('index', 'UI rendered');
             } catch (error) {
@@ -77,7 +96,7 @@
                 document.getElementById('loading-status').innerHTML = `Error: ${error.message}`;
             }
         }
-
+    
         window.addEventListener('load', start);
     </script>
 </body>
