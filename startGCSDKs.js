@@ -34,7 +34,7 @@ function startGCSDKs(clientId) {
                 resolve();
             })
             .catch(err => {
-                console.error("startGCSDKs.js - Error during setup:", err);
+                window.logger.error('startGCSDKs', 'Error during setup:', err);
                 reject(err);
             });
     });
