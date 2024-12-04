@@ -1,22 +1,13 @@
 import { streamObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
-import sanitizeHtml from 'sanitize-html';
 import { jsonSchema } from '../lib/analysisSchema';
 import MessageHistory from '../lib/messageHistory';
 import analyzeSystemPrompt from '../lib/analyzeSystemPrompt';
+import { sanitizeHtml } from '../lib/sanitizeHtml';
 import { z } from 'zod';
 
 export const config = {
   runtime: 'edge'
-};
-
-// Input sanitization
-const sanitizeInput = (text) => {
-  return sanitizeHtml(text, {
-    allowedTags: [],
-    allowedAttributes: {},
-    disallowedTagsMode: 'recursiveEscape',
-  });
 };
 
 const validateOpenAIParams = (params) => {
@@ -100,7 +91,7 @@ export default async function handler(req) {
     });
 
     parsedData.forEach((transcript) => {
-      const sanitizedText = sanitizeInput(transcript.text);
+      const sanitizedText = sanitizeHtml(transcript.text);
       messageHistory.addMessage(
         'user',
         sanitizedText,
@@ -131,14 +122,8 @@ export default async function handler(req) {
       }
     });
 
-    return new Response(result.partialObjectStream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        'X-Content-Type-Options': 'nosniff',
-        'Connection': 'keep-alive',
-      },
-    });
+    // Use the Vercel AI SDK's built-in response formatter
+    return result.toDataStreamResponse();
 
   } catch (err) {
     log('Error processing API request:', err.message);
