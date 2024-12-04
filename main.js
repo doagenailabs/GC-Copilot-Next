@@ -1,48 +1,45 @@
 function initializeWebSocket(platformClient) {
     return new Promise((resolve, reject) => {
-        let channelId;
-
         const apiInstance = new platformClient.NotificationsApi();
 
         apiInstance.postNotificationsChannels({})
             .then(response => {
-                channelId = response.id;
-                const ws = new WebSocket(response.connectUri);
-                window.wsInstance = ws;
+                const channelId = response.id;
+                
+                // Initialize WebSocket manager with custom handlers
+                const wsManager = new WebSocketManager(response.connectUri, {
+                    maxRetries: 3,
+                    retryDelay: 3000,
+                    handlers: {
+                        onOpen: () => {
+                            subscribeToTopic(channelId, `v2.conversations.${window.conversationId}.transcription`, platformClient);
+                            resolve();
+                        },
+                        onMessage: async (data) => {
+                            if (data.topicName === 'channel.metadata') {
+                                return;
+                            }
 
-                ws.onmessage = async (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
+                            if (data.topicName === `v2.conversations.${window.conversationId}.transcription`) {
+                                await processTranscription(data);
+                            }
 
-                        if (data.topicName === 'channel.metadata') {
-                            return;
+                            if (data.eventBody?.disconnectType) {
+                                wsManager.close();
+                            }
+                        },
+                        onError: (error) => {
+                            console.error("WebSocket encountered an error:", error);
+                            reject(error);
+                        },
+                        onClose: (event) => {
+                            console.log("WebSocket connection closed:", event);
                         }
-
-                        if (data.topicName === `v2.conversations.${window.conversationId}.transcription`) {
-                            await processTranscription(data);
-                        }
-
-                        if (data.eventBody && data.eventBody.disconnectType) {
-                            ws.close();
-                        }
-                    } catch (err) {
-                        console.error('WebSocket message processing error:', err);
                     }
-                };
+                });
 
-                ws.onopen = () => {
-                    subscribeToTopic(channelId, `v2.conversations.${window.conversationId}.transcription`, platformClient);
-                    resolve();
-                };
-
-                ws.onerror = (error) => {
-                    console.error("WebSocket encountered an error:", error);
-                    reject(error);
-                };
-
-                ws.onclose = (event) => {
-                    console.log("WebSocket connection closed:", event);
-                };
+                // Store manager reference for potential cleanup
+                window.wsManager = wsManager;
             })
             .catch(err => {
                 console.error("Error during postNotificationsChannels call:", err);
@@ -54,12 +51,13 @@ function initializeWebSocket(platformClient) {
 function subscribeToTopic(channelId, topicName, platformClient) {
     const apiInstance = new platformClient.NotificationsApi();
 
-    apiInstance.postNotificationsChannelSubscriptions(channelId, [{ id: topicName }])
+    return apiInstance.postNotificationsChannelSubscriptions(channelId, [{ id: topicName }])
         .then(() => {
             console.log("Successfully subscribed to topic:", topicName);
         })
         .catch(err => {
             console.error("Error during topic subscription:", err);
+            throw err; // Propagate error for handling
         });
 }
 
@@ -67,7 +65,7 @@ async function processTranscription(data) {
     try {
         const transcripts = data.eventBody.transcripts;
 
-        if (!transcripts || !transcripts.length) {
+        if (!transcripts?.length) {
             return;
         }
 
@@ -93,17 +91,20 @@ async function processTranscription(data) {
             };
         });
 
+        // Use store from StoreBase
         transcriptionTexts.forEach(transcript => {
             window.transcriptionStore.updateTranscriptionHistory(transcript);
         });
 
         window.transcriptBuffer.push(...transcriptionTexts);
 
+        // Clean up old transcripts
         const oldestAllowedTimestamp = Date.now() - 30000;
-        const recentTranscripts = window.transcriptBuffer.filter(t => t.timestamp >= oldestAllowedTimestamp);
-        window.transcriptBuffer = recentTranscripts;
+        window.transcriptBuffer = window.transcriptBuffer.filter(t => 
+            t.timestamp >= oldestAllowedTimestamp
+        );
 
-        await analyzeTranscripts(recentTranscripts);
+        await analyzeTranscripts(window.transcriptBuffer);
     } catch (err) {
         console.error('Error processing transcription:', err);
     }
@@ -115,6 +116,7 @@ async function analyzeTranscripts(recentTranscripts) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'x-csrf-token': window.csrfToken // Add CSRF token
             },
             body: JSON.stringify({
                 transcriptionData: JSON.stringify(recentTranscripts)
@@ -122,9 +124,11 @@ async function analyzeTranscripts(recentTranscripts) {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
         }
 
+        // Use streams API for efficient processing
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let analysisText = '';
@@ -138,9 +142,12 @@ async function analyzeTranscripts(recentTranscripts) {
 
             const chunk = decoder.decode(value);
             analysisText += chunk;
+            
+            // Use store from StoreBase
             window.analysisStore.updateAnalysis(analysisText);
         }
     } catch (err) {
         console.error('Error analyzing transcripts:', err);
+        // Could add retry logic here if needed
     }
 }
