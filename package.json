@@ -4,7 +4,8 @@
   "dependencies": {
     "openai": "^4.73.1",
     "jsonwebtoken": "^9.0.2",
-    "express-rate-limit": "^7.4.1"
+    "express-rate-limit": "^7.4.1",
+    "sanitize-html": "^2.13.1"
   },
   "engines": {
     "node": ">=18.0.0"
