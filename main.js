@@ -1,3 +1,5 @@
+const platformClient = require('platformClient');
+
 function initializeWebSocket() {
     window.logger.debug('main', 'Initializing WebSocket connection');
     return new Promise((resolve, reject) => {
