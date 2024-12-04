@@ -1,25 +1,19 @@
-const platformClient = require('platformClient');
-
 function initializeWebSocket() {
     window.logger.debug('main', 'Initializing WebSocket connection');
     return new Promise((resolve, reject) => {
         window.logger.debug('main', 'Creating NotificationsApi instance');
         const apiInstance = new platformClient.NotificationsApi();
-        
+
         window.logger.debug('main', 'Making postNotificationsChannels request');
         apiInstance.postNotificationsChannels({})
             .then(response => {
-                window.logger.info('main', 'Notifications channel created successfully:', { 
+                window.logger.info('main', 'Notifications channel created successfully:', {
                     channelId: response.id,
-                    connectUri: response.connectUri 
+                    connectUri: response.connectUri
                 });
                 const channelId = response.id;
 
-                window.logger.debug('main', 'Creating WebSocket manager with config:', {
-                    maxRetries: 3,
-                    retryDelay: 3000,
-                    connectUri: response.connectUri
-                });
+                window.logger.info('main', 'Using conversationId for subscription:', { conversationId: window.conversationId });
 
                 const wsManager = new WebSocketManager(response.connectUri, {
                     maxRetries: 3,
@@ -27,8 +21,8 @@ function initializeWebSocket() {
                     handlers: {
                         onOpen: () => {
                             window.logger.info('main', 'WebSocket connection opened successfully');
-                            window.logger.debug('main', 'Attempting to subscribe to transcription topic');
-                            
+                            window.logger.debug('main', 'Attempting to subscribe to transcription topic:', { conversationId: window.conversationId });
+
                             subscribeToTopic(channelId, `v2.conversations.${window.conversationId}.transcription`)
                                 .then(() => {
                                     window.logger.info('main', 'Topic subscription successful');
