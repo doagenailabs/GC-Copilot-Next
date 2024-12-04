@@ -21,7 +21,7 @@
     <script>
         window.addEventListener('DOMContentLoaded', function() {
             if (!window.StoreBase) {
-                console.error('StoreBase failed to load');
+                window.logger.error('index', 'StoreBase failed to load');
             }
         });
     </script>
@@ -50,9 +50,9 @@
     <script>
         async function start() {
             try {
-                console.log("index.html - start");
+                window.logger.log('index', 'Application starting');
                 const config = await fetch('/api/getConfig').then(r => r.json());
-                console.log("index.html - getConfig OK");
+                window.logger.log('index', 'Config retrieved successfully');
                 
                 // Wait for DOM and scripts to be ready
                 await new Promise(resolve => {
@@ -73,21 +73,21 @@
                 Object.keys(config).forEach(key => {
                     window[key] = config[key];
                 });
-                console.log("index.html - setWindowConfig OK");
+                window.logger.log('index', 'Window config set successfully');
                 
                 // Initialize SDKs
                 await startGCSDKs(window.GCclientId);
-                console.log("index.html - SDK started");
+                window.logger.log('index', 'SDK initialized successfully');
                 
                 // Initialize WebSocket
                 await initializeWebSocket(window.platformClient);                    
-                console.log("index.html - WebSocket initialized");
+                window.logger.log('index', 'WebSocket connection established');
                 
                 // Render UI
                 renderAnalysisDisplay();
                 
             } catch (error) {
-                console.error('Error occurred:', error);
+                window.logger.error('index', 'Application initialization failed:', error);
                 // Show user-friendly error message
                 document.getElementById('app').innerHTML = `
                     <div style="text-align: center; padding: 20px; color: #ff0000;">
