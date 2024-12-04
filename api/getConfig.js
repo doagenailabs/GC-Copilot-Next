@@ -5,7 +5,5 @@ module.exports = (req, res) => {
         maxHistoryMessages: process.env.CONVERSATION_HISTORY_MESSAGES_NUMBER
     };
     
-    console.log('API: Returning config:', config);
-    
     res.json(config);
 };
