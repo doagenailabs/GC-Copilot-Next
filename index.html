@@ -12,7 +12,13 @@
         style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data: https:;
-        connect-src 'self' https://sdk-cdn.mypurecloud.com https://api.mypurecloud.ie wss://streaming.mypurecloud.ie">
+        connect-src 'self' 
+            https://*.mypurecloud.* 
+            https://*.pure.cloud 
+            https://*.us-gov-pure.cloud 
+            wss://*.mypurecloud.* 
+            wss://*.pure.cloud 
+            wss://*.us-gov-pure.cloud">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     
     <!-- Third-party SDKs -->
