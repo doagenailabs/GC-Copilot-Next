@@ -63,10 +63,10 @@ const validateTranscriptionData = (data) => {
 };
 
 module.exports = [apiLimiter, csrfProtection, async (req, res) => {
-    const LOG_PREFIX = 'GCCopilotNext - analyze.js -';
-    const log = (message, ...args) => console.log(`${LOG_PREFIX} ${message}`, ...args);
-    const error = (message, ...args) => console.error(`${LOG_PREFIX} ${message}`, ...args);
-    const debug = (message, ...args) => console.debug(`${LOG_PREFIX} ${message}`, ...args);
+    const LOG_PREFIX = 'GCCopilotNext - api/analyze.js -';
+    const log = (message, ...args) => window.logger.log('analyze', message, ...args);
+    const error = (message, ...args) => window.logger.error('analyze', message, ...args);
+    const debug = (message, ...args) => window.logger.debug('analyze', message, ...args);
 
     try {
         debug('Processing POST request');
