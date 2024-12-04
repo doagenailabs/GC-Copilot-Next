@@ -27,11 +27,11 @@
         }
     </script>
     
-    <!-- GC SDKs -->
+    <!-- GC SDKs - Updated with correct URLs -->
     <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js" 
             onload="logSDKEvent({type: 'load', sdk: 'platformClient', status: 'success'})"
             onerror="logSDKEvent({type: 'load', sdk: 'platformClient', status: 'error'})"></script>
-    <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.min.js"
+    <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk-de77761d.min.js"
             onload="logSDKEvent({type: 'load', sdk: 'clientApp', status: 'success'})"
             onerror="logSDKEvent({type: 'load', sdk: 'clientApp', status: 'error'})"></script>
     
@@ -121,7 +121,7 @@
                 window.logger.info('index', 'Application initialization starting');
                 updateLoadingStatus('Checking SDK availability...');
                 
-                // SDK check
+                // Enhanced SDK check
                 const sdkStatus = {
                     platformClient: {
                         exists: !!window.platformClient,
