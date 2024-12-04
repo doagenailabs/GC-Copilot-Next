@@ -56,6 +56,9 @@
     
                 setWindowConfig(config);
     
+                // Store the CSRF token
+                window.csrfToken = config.csrfToken;
+    
                 // Define required parameters
                 const requiredParams = ['langTag', 'gcTargetEnv', 'gcHostOrigin', 'conversationId'];
                 const urlParams = new URLSearchParams(window.location.search);
