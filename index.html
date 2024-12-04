@@ -51,12 +51,16 @@
 
         async function start() {
             try {
-                window.logger.info('index', 'Starting application');
+                console.log('Starting application, fetching config...');
                 const config = await getConfig();
-                window.logger.info('index', 'Config retrieved');
                 
                 setWindowConfig(config);
-                window.logger.info('index', 'Window config set');
+                
+                // Verify logging is enabled
+                console.log('Config received:', config);
+                console.log('Logs enabled:', window.logsEnabled);
+                
+                window.logger.info('index', 'Starting application with config:', config);
                 
                 const platformClient = await startGCSDKs(config.GCclientId);
                 window.platformClient = platformClient;
@@ -68,7 +72,8 @@
                 renderAnalysisDisplay();
                 window.logger.info('index', 'UI rendered');
             } catch (error) {
-                window.logger.error('index', 'Application initialization failed:', error);
+                console.error('Application initialization failed:', error);
+                window.logger?.error('index', 'Application initialization failed:', error);
                 document.getElementById('loading-status').innerHTML = `Error: ${error.message}`;
             }
         }
