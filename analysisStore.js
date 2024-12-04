@@ -1,40 +1,27 @@
 window.analysisStore = (function () {
-    var listeners = new Set();
-    var currentAnalysis = '';
-
-    function updateAnalysis(text) {
-        if (typeof text !== 'string') {
-            window.logger.error('analysisStore', 'Analysis text must be a string');
-            return;
+    class AnalysisStore extends StoreBase {
+        constructor() {
+            super();
+            this.currentAnalysis = '';
         }
-        currentAnalysis = text;
-        listeners.forEach(function (listener) {
-            try {
-                listener(currentAnalysis);
-            } catch (err) {
-                window.logger.error('analysisStore', 'Listener error:', err);
+
+        updateAnalysis(text) {
+            if (typeof text !== 'string') {
+                throw new Error('Analysis text must be a string');
             }
-        });
-    }
-
-    function subscribeToAnalysis(listener) {
-        if (typeof listener !== 'function') {
-            window.logger.error('analysisStore', 'Listener must be a function');
-            return function () { };
+            this.currentAnalysis = text;
+            this.notifyListeners(this.currentAnalysis);
         }
-        listeners.add(listener);
-        return function () {
-            listeners.delete(listener);
-        };
+
+        getCurrentAnalysis() {
+            return this.currentAnalysis;
+        }
     }
 
-    function getCurrentAnalysis() {
-        return currentAnalysis;
-    }
-
+    const store = new AnalysisStore();
     return {
-        updateAnalysis: updateAnalysis,
-        subscribeToAnalysis: subscribeToAnalysis,
-        getCurrentAnalysis: getCurrentAnalysis
+        updateAnalysis: store.updateAnalysis.bind(store),
+        subscribeToAnalysis: store.addListener.bind(store),
+        getCurrentAnalysis: store.getCurrentAnalysis.bind(store)
     };
 })();
