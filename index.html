@@ -5,60 +5,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Core logging must be loaded first -->
+    <!-- Core SDK scripts - No defer, load immediately -->
+    <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
+    <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk-de77761d.min.js"></script>
+    
+    <!-- Core application scripts - No defer -->
     <script src="logging.js"></script>
-    
-    <!-- SDK Loading Debug Script -->
-    <script>
-        window.sdkDebug = {
-            loadStartTime: Date.now(),
-            events: []
-        };
-    
-        function logSDKEvent(event) {
-            const timestamp = Date.now();
-            const timeElapsed = timestamp - window.sdkDebug.loadStartTime;
-            window.sdkDebug.events.push({
-                time: timestamp,
-                timeElapsed: timeElapsed,
-                event: event
-            });
-            window.logger.debug('SDKLoader', `SDK Event [${timeElapsed}ms]`, event);
-        }
-    </script>
-    
-    <!-- Core SDKs - These must load and initialize first -->
-    <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js" 
-            onload="logSDKEvent({type: 'load', sdk: 'platformClient', status: 'success'})"
-            onerror="logSDKEvent({type: 'load', sdk: 'platformClient', status: 'error'})"></script>
-    <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk-de77761d.min.js"
-            onload="logSDKEvent({type: 'load', sdk: 'clientApp', status: 'success'})"
-            onerror="logSDKEvent({type: 'load', sdk: 'clientApp', status: 'error'})"></script>
-    
-    <!-- Core Framework - These need to be available immediately -->
-    <script src="lib/storeBase.js"></script>
     <script src="lib/startGCSDKs.js"></script>
-    <script src="lib/genesysConfig.js"></script>
-    
-    <!-- Verify SDK Loading -->
-    <script>
-        window.logger.debug('SDKLoader', 'Immediate SDK state check', {
-            platformClientState: {
-                exists: !!window.platformClient,
-                type: typeof window.platformClient,
-                keys: window.platformClient ? Object.keys(window.platformClient) : [],
-                constructorName: window.platformClient?.constructor?.name
-            },
-            purecloudState: {
-                exists: !!window.purecloud,
-                type: typeof window.purecloud,
-                hasApps: !!window.purecloud?.apps,
-                appsKeys: window.purecloud?.apps ? Object.keys(window.purecloud.apps) : []
-            }
-        });
-    </script>
-    
-    <!-- Application Scripts - These can be deferred -->
+    <script src="main.js"></script>
+
+    <!-- Remaining scripts can be deferred -->
+    <script src="lib/storeBase.js" defer></script>
     <script src="lib/safeDOM.js" defer></script>
     <script src="lib/secureWindowManager.js" defer></script>
     <script src="lib/analysisStore.js" defer></script>
@@ -66,140 +23,57 @@
     <script src="lib/webSocketManager.js" defer></script>
     <script src="lib/analysisDisplay.js" defer></script>
     <script src="lib/uiCard.js" defer></script>
-    <script src="main.js" defer></script>
     
     <!-- Styles -->
     <link rel="stylesheet" href="styles/globals.css">
 </head>
 <body>
     <div id="app">
-        <div id="loading-status" style="text-align: center; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto;">
-                <h3>Loading Application...</h3>
-                <div id="loading-details" style="text-align: left; background: #f5f5f5; padding: 10px; border-radius: 4px;">
-                    Initializing...
-                </div>
-            </div>
-        </div>
+        <div id="loading-status">Loading...</div>
     </div>
     
     <script>
-        function updateLoadingStatus(status, isError = false) {
-            const loadingDetails = document.getElementById('loading-details');
-            if (loadingDetails) {
-                const sdkStatus = window.sdkDebug.events
-                    .map(event => {
-                        const timeStr = `[${event.timeElapsed}ms]`;
-                        const eventStr = `${event.event.type}: ${event.event.sdk || event.event.component} ` +
-                            `(${event.event.status || 'checked'})`;
-                        return `${timeStr} ${eventStr}`;
-                    })
-                    .join('<br>');
+        function getConfig() {
+            return fetch('/api/getConfig')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Environment vars could not be retrieved');
+                    }
+                    return response.json();
+                });
+        }
 
-                loadingDetails.innerHTML = `
-                    <div style="color: ${isError ? '#ff0000' : '#000000'}">
-                        <strong>Status:</strong> ${status}<br>
-                        <strong>Loading Timeline:</strong><br>
-                        ${sdkStatus}
-                    </div>
-                `;
-            }
+        function setWindowConfig(config) {
+            Object.keys(config).forEach(key => {
+                window[key] = config[key];
+            });
         }
 
         async function start() {
             try {
-                window.logger.info('index', 'Application initialization starting');
-                updateLoadingStatus('Checking SDK availability...');
+                window.logger.info('index', 'Starting application');
+                const config = await getConfig();
+                window.logger.info('index', 'Config retrieved');
                 
-                // Enhanced SDK check
-                const sdkStatus = {
-                    platformClient: {
-                        exists: !!window.platformClient,
-                        type: typeof window.platformClient,
-                        hasApiClient: !!window.platformClient?.ApiClient
-                    },
-                    purecloud: {
-                        exists: !!window.purecloud,
-                        type: typeof window.purecloud,
-                        hasApps: !!window.purecloud?.apps
-                    }
-                };
-
-                window.logger.debug('index', 'SDK status check', sdkStatus);
-
-                if (!sdkStatus.platformClient.exists || !sdkStatus.purecloud.exists || !sdkStatus.purecloud.hasApps) {
-                    throw new Error('Genesys Cloud SDKs failed to load: ' + 
-                        JSON.stringify(sdkStatus, null, 2));
-                }
-
-                window.logger.info('index', 'SDK check passed, fetching configuration');
-                updateLoadingStatus('Fetching configuration...');
-                const config = await fetch('/api/getConfig').then(r => r.json());
-                window.logger.debug('index', 'Configuration retrieved', config);
+                setWindowConfig(config);
+                window.logger.info('index', 'Window config set');
                 
-                updateLoadingStatus('Waiting for DOM and scripts...');
-                await new Promise(resolve => {
-                    if (document.readyState === 'complete' && window.StoreBase) {
-                        resolve();
-                    } else {
-                        window.addEventListener('load', () => {
-                            if (window.StoreBase) {
-                                resolve();
-                            } else {
-                                window.logger.error('index', 'StoreBase not loaded after window load');
-                                throw new Error('StoreBase failed to load after window load');
-                            }
-                        });
-                    }
-                });
+                const platformClient = await startGCSDKs(config.GCclientId);
+                window.platformClient = platformClient;
+                window.logger.info('index', 'SDK initialized');
                 
-                window.logger.info('index', 'Setting up application configuration');
-                updateLoadingStatus('Setting up configuration...');
-                const fullConfig = {
-                    ...window._baseGenesysConfig,
-                    clientId: config.GCclientId,
-                };
+                await initializeWebSocket();
+                window.logger.info('index', 'WebSocket initialized');
                 
-                window.SecureWindowManager.defineConfig(fullConfig);
-                window.logsEnabled = config.logsEnabled;
-                window.maxHistoryMessages = config.maxHistoryMessages;
-                
-                window.logger.info('index', 'Initializing Genesys Cloud SDKs');
-                updateLoadingStatus('Initializing SDKs...');
-                await startGCSDKs();
-                
-                window.logger.info('index', 'Establishing WebSocket connection');
-                updateLoadingStatus('Establishing WebSocket connection...');
-                await initializeWebSocket(window.platformClient);
-                
-                window.logger.info('index', 'Rendering application UI');
-                updateLoadingStatus('Rendering UI...');
                 renderAnalysisDisplay();
-                
-                // Clear loading status on success
-                document.getElementById('loading-status').style.display = 'none';
-                window.logger.info('index', 'Application initialization completed successfully');
-                
+                window.logger.info('index', 'UI rendered');
             } catch (error) {
-                window.logger.error('index', 'Application initialization failed', {
-                    error: error.message,
-                    stack: error.stack,
-                    sdkDebug: window.sdkDebug.events
-                });
-                updateLoadingStatus(`Initialization failed: ${error.message}`, true);
+                window.logger.error('index', 'Application initialization failed:', error);
+                document.getElementById('loading-status').innerHTML = `Error: ${error.message}`;
             }
         }
 
-        // Start app when DOM is loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                window.logger.debug('index', 'DOM Content Loaded, starting application');
-                start();
-            });
-        } else {
-            window.logger.debug('index', 'DOM already loaded, starting application immediately');
-            start();
-        }
+        window.addEventListener('load', start);
     </script>
 </body>
 </html>
