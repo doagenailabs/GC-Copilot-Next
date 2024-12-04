@@ -15,7 +15,6 @@ const sanitizeInput = (text) => {
   });
 };
 
-// Input validation
 const validateOpenAIParams = (params) => {
   const { model, maxTokens, temperature } = params;
 
@@ -57,22 +56,25 @@ const validateTranscriptionData = (data) => {
   return true;
 };
 
-export default async function handler(request) {
-  const encoder = new TextEncoder();
+export default async function handler(req) {
   const log = (message, ...args) => console.log(`[GCCopilotNext] ${message}`, ...args);
 
   try {
-    if (request.method !== 'POST') {
+    if (req.method !== 'POST') {
       return new Response(
         JSON.stringify({
           error: 'Method Not Allowed',
           timestamp: new Date().toISOString(),
         }),
-        { status: 405, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 405, 
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
 
-    const body = await request.json();
+    const text = await req.text();
+    const body = JSON.parse(text);
     
     if (!body?.transcriptionData) {
       throw new Error('transcriptionData is required');
@@ -160,7 +162,10 @@ export default async function handler(request) {
         message: err.message,
         timestamp: new Date().toISOString(),
       }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   }
 }
