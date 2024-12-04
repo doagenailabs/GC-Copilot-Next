@@ -108,7 +108,7 @@ export default async function handler(req) {
     // Convert jsonSchema to Zod schema
     const zodSchema = z.object(jsonSchema.properties);
 
-    const { partialObjectStream } = await streamObject({
+    const { partialObjectStream, usage } = await streamObject({
       model: openai(model),
       schema: zodSchema,
       maxTokens,
@@ -122,14 +122,19 @@ export default async function handler(req) {
       }
     });
 
-    // Create a TransformStream to convert the partial objects to strings
+    // Create a TransformStream that converts objects to bytes
+    const encoder = new TextEncoder();
     const transformer = new TransformStream({
       transform(chunk, controller) {
-        controller.enqueue(JSON.stringify(chunk) + '\n');
+        // Convert chunk to JSON string and append newline
+        const jsonString = JSON.stringify(chunk) + '\n';
+        // Encode the string to bytes
+        const bytes = encoder.encode(jsonString);
+        controller.enqueue(bytes);
       },
     });
 
-    // Pipe the partial object stream through the transformer
+    // Pipe through the transformer to convert objects to bytes
     const responseStream = partialObjectStream.pipeThrough(transformer);
 
     return new Response(responseStream, {
