@@ -246,7 +246,6 @@ async function analyzeTranscripts(recentTranscripts) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // Process response stream...
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let analysisText = '';
@@ -254,8 +253,23 @@ async function analyzeTranscripts(recentTranscripts) {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      analysisText += decoder.decode(value);
-      window.analysisStore.updateAnalysis(analysisText);
+      buffer += decoder.decode(value, { stream: true });
+      
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            const partialObject = JSON.parse(line);
+            window.logger.debug('main', 'Parsed analysis:', partialObject);
+            window.analysisStore.updateAnalysis(partialObject);
+            window.analysisDisplay?.updateAnalysisDisplay?.(partialObject);
+          } catch (parseError) {
+            window.logger.error('main', 'Parse error:', { error: parseError, data: line });
+          }
+        }
+      }
     }
 
   } catch (err) {
