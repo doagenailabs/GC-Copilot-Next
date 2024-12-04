@@ -1,13 +1,24 @@
 const OpenAI = require('openai');
 const { messageHistory } = require('../lib/messageHistory');
 const { jsonSchema } = require('../lib/analysisSchema');
+const { csrfProtection } = require('./middleware/csrfProtection');
 const rateLimit = require('express-rate-limit');
+const sanitizeHtml = require('sanitize-html');
 
 // Rate limiting middleware
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100 // limit each IP to 100 requests per windowMs
 });
+
+// Input sanitization
+const sanitizeInput = (text) => {
+    return sanitizeHtml(text, {
+        allowedTags: [], // Strip all HTML
+        allowedAttributes: {},
+        disallowedTagsMode: 'recursiveEscape'
+    });
+};
 
 // Input validation
 const validateOpenAIParams = (params) => {
@@ -40,19 +51,22 @@ const validateTranscriptionData = (data) => {
         if (!item.channel || !['EXTERNAL', 'INTERNAL'].includes(item.channel)) {
             throw new Error(`Invalid channel in transcription data at index ${index}`);
         }
+        if (!item.confidence || typeof item.confidence !== 'number') {
+            throw new Error(`Invalid confidence in transcription data at index ${index}`);
+        }
+        if (!item.timestamp || typeof item.timestamp !== 'number') {
+            throw new Error(`Invalid timestamp in transcription data at index ${index}`);
+        }
     });
 
     return true;
 };
 
-module.exports = async (req, res) => {
+module.exports = [apiLimiter, csrfProtection, async (req, res) => {
     const LOG_PREFIX = 'GCCopilotNext - analyze.js -';
     const log = (message, ...args) => console.log(`${LOG_PREFIX} ${message}`, ...args);
     const error = (message, ...args) => console.error(`${LOG_PREFIX} ${message}`, ...args);
     const debug = (message, ...args) => console.debug(`${LOG_PREFIX} ${message}`, ...args);
-
-    // Apply rate limiting
-    await apiLimiter(req, res);
 
     try {
         debug('Processing POST request');
@@ -65,17 +79,8 @@ module.exports = async (req, res) => {
             });
         }
 
-        // Validate CSRF token
-        const csrfToken = req.headers['x-csrf-token'];
-        if (!csrfToken || !validateCsrfToken(csrfToken)) {
-            return res.status(403).json({ 
-                error: 'Invalid CSRF token',
-                timestamp: new Date().toISOString()
-            });
-        }
-
         // Validate request body
-        if (!req.body || !req.body.transcriptionData) {
+        if (!req.body?.transcriptionData) {
             throw new Error('transcriptionData is required');
         }
 
@@ -130,6 +135,9 @@ module.exports = async (req, res) => {
             res.setHeader('Cache-Control', 'no-cache, no-transform');
             res.setHeader('X-Content-Type-Options', 'nosniff');
             res.setHeader('Connection', 'keep-alive');
+            res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+            res.setHeader('X-Frame-Options', 'DENY');
+            res.setHeader('X-XSS-Protection', '1; mode=block');
 
             // Handle stream errors
             completion.body.on('error', (streamError) => {
@@ -164,4 +172,4 @@ module.exports = async (req, res) => {
 
         res.status(500).json(errorResponse);
     }
-};
+}];
