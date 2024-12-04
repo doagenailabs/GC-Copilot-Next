@@ -7,7 +7,7 @@
 
         updateAnalysis(text) {
             if (typeof text !== 'string') {
-                console.error('Analysis text must be a string');
+                window.logger.error('analysisStore', 'Analysis text must be a string');
                 return;
             }
             this.currentAnalysis = text;
