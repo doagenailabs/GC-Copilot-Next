@@ -1,4 +1,6 @@
-function initializeWebSocket(platformClient) {
+const platformClient = require('platformClient');
+
+function initializeWebSocket() {
     window.logger.debug('main', 'Initializing WebSocket connection');
     return new Promise((resolve, reject) => {
         const apiInstance = new platformClient.NotificationsApi();
@@ -21,7 +23,7 @@ function initializeWebSocket(platformClient) {
                     handlers: {
                         onOpen: () => {
                             window.logger.info('main', 'WebSocket connection opened successfully');
-                            subscribeToTopic(channelId, `v2.conversations.${window.conversationId}.transcription`, platformClient);
+                            subscribeToTopic(channelId, `v2.conversations.${window.conversationId}.transcription`);
                             resolve();
                         },
                         onMessage: async (data) => {
@@ -63,7 +65,7 @@ function initializeWebSocket(platformClient) {
     });
 }
 
-function subscribeToTopic(channelId, topicName, platformClient) {
+function subscribeToTopic(channelId, topicName) {
     window.logger.debug('main', 'Subscribing to topic:', { channelId, topicName });
     const apiInstance = new platformClient.NotificationsApi();
 
@@ -215,6 +217,5 @@ async function analyzeTranscripts(recentTranscripts) {
         });
     } catch (err) {
         window.logger.error('main', 'Error analyzing transcripts:', err);
-        // Could add retry logic here if needed
     }
 }
