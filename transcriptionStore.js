@@ -1,5 +1,5 @@
-window.transcriptionStore = (function () {
-    class TranscriptionStore extends StoreBase {
+(function() {
+    const TranscriptionStore = class extends window.StoreBase {
         constructor() {
             super();
             this.transcriptionHistory = [];
@@ -8,24 +8,28 @@ window.transcriptionStore = (function () {
 
         updateTranscriptionHistory(transcript) {
             if (!transcript || !transcript.text || !transcript.channel) {
-                throw new Error('Invalid transcript');
+                console.error('Invalid transcript');
+                return;
             }
             this.transcriptionHistory.push(transcript);
             if (this.transcriptionHistory.length > this.MAX_HISTORY) {
                 this.transcriptionHistory.shift();
             }
-            this.notifyListeners(this.transcriptionHistory);
+            this.notifyListeners([...this.transcriptionHistory]);
         }
 
         getCurrentTranscriptionHistory() {
             return [...this.transcriptionHistory];
         }
-    }
+    };
 
     const store = new TranscriptionStore();
-    return {
+    
+    window.transcriptionStore = {
         updateTranscriptionHistory: store.updateTranscriptionHistory.bind(store),
         subscribeToTranscriptions: store.addListener.bind(store),
         getCurrentTranscriptionHistory: store.getCurrentTranscriptionHistory.bind(store)
     };
+
+    Object.freeze(window.transcriptionStore);
 })();
