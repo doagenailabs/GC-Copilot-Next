@@ -108,7 +108,7 @@ export default async function handler(req) {
     // Convert jsonSchema to Zod schema
     const zodSchema = z.object(jsonSchema.properties);
 
-    const result = await streamObject({
+    const { partialObjectStream } = await streamObject({
       model: openai(model),
       schema: zodSchema,
       maxTokens,
@@ -122,8 +122,24 @@ export default async function handler(req) {
       }
     });
 
-    // Use the Vercel AI SDK's built-in response formatter
-    return result.toDataStreamResponse();
+    // Create a TransformStream to convert the partial objects to strings
+    const transformer = new TransformStream({
+      transform(chunk, controller) {
+        controller.enqueue(JSON.stringify(chunk) + '\n');
+      },
+    });
+
+    // Pipe the partial object stream through the transformer
+    const responseStream = partialObjectStream.pipeThrough(transformer);
+
+    return new Response(responseStream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        'X-Content-Type-Options': 'nosniff',
+        'Connection': 'keep-alive',
+      },
+    });
 
   } catch (err) {
     log('Error processing API request:', err.message);
