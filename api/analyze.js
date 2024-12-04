@@ -51,10 +51,10 @@ const validateTranscriptionData = (data) => {
         if (!item.channel || !['EXTERNAL', 'INTERNAL'].includes(item.channel)) {
             throw new Error(`Invalid channel in transcription data at index ${index}`);
         }
-        if (!item.confidence || typeof item.confidence !== 'number') {
+        if (typeof item.confidence !== 'number') {
             throw new Error(`Invalid confidence in transcription data at index ${index}`);
         }
-        if (!item.timestamp || typeof item.timestamp !== 'number') {
+        if (typeof item.timestamp !== 'number') {
             throw new Error(`Invalid timestamp in transcription data at index ${index}`);
         }
     });
@@ -64,9 +64,9 @@ const validateTranscriptionData = (data) => {
 
 module.exports = [apiLimiter, csrfProtection, async (req, res) => {
     const LOG_PREFIX = 'GCCopilotNext - api/analyze.js -';
-    const log = (message, ...args) => window.logger.log('analyze', message, ...args);
-    const error = (message, ...args) => window.logger.error('analyze', message, ...args);
-    const debug = (message, ...args) => window.logger.debug('analyze', message, ...args);
+    const log = (message, ...args) => console.log(`${LOG_PREFIX} ${message}`, ...args);
+    const error = (message, ...args) => console.error(`${LOG_PREFIX} ${message}`, ...args);
+    const debug = (message, ...args) => console.debug(`${LOG_PREFIX} ${message}`, ...args);
 
     try {
         debug('Processing POST request');
@@ -102,20 +102,20 @@ module.exports = [apiLimiter, csrfProtection, async (req, res) => {
 
             // Prepare and validate OpenAI request parameters
             const model = process.env.OPENAI_MODEL || 'gpt-4';
-            const maxTokens = parseInt(process.env.OPENAI_MAX_COMPLETION_TOKENS || '2048');
+            const maxTokens = parseInt(process.env.OPENAI_MAX_COMPLETION_TOKENS || '2048', 10);
             const temperature = parseFloat(process.env.OPENAI_TEMPERATURE || '0.2');
 
             validateOpenAIParams({ model, maxTokens, temperature });
             debug('OpenAI request parameters validated:', { model, maxTokens, temperature });
 
-            // Initialize OpenAI client with error handling
+            // Initialize OpenAI client
             const openai = new OpenAI({
                 apiKey: process.env.OPENAI_API_KEY,
                 timeout: 30000, // 30 second timeout
                 maxRetries: 3
             });
 
-            // Create completion with enhanced error handling
+            // Create completion
             const completion = await openai.chat.completions.create({
                 model,
                 messages: messageHistory.getMessages(),
@@ -166,7 +166,7 @@ module.exports = [apiLimiter, csrfProtection, async (req, res) => {
             requestId: require('crypto').randomUUID()
         };
 
-        if (process.env.NODE_ENV === 'development' && err instanceof Error && err.cause) {
+        if (err instanceof Error && err.cause) {
             errorResponse.cause = err.cause;
         }
 
