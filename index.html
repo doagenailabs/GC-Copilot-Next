@@ -6,9 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://sdk-cdn.mypurecloud.com; script-src 'self' https://sdk-cdn.mypurecloud.com 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https://sdk-cdn.mypurecloud.com;
+        script-src 'self' https://sdk-cdn.mypurecloud.com https://vercel.live 'unsafe-inline';
+        style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://sdk-cdn.mypurecloud.com https://api.mypurecloud.ie wss://streaming.mypurecloud.ie">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
     
     <!-- Third-party SDKs -->
     <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js" defer></script>
@@ -63,7 +68,7 @@
                             if (window.StoreBase) {
                                 resolve();
                             } else {
-                                console.error('StoreBase not loaded after window load');
+                                window.logger.error('index', 'StoreBase not loaded after window load');
                             }
                         });
                     }
