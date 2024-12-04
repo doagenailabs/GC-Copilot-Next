@@ -72,7 +72,8 @@ export default async function handler(req) {
       );
     }
 
-    const body = await new Request(req).json();
+    // Use Request.json() instead of req.json()
+    const body = await req.json();
     if (!body.transcriptionData) {
       throw new Error('transcriptionData is required');
     }
