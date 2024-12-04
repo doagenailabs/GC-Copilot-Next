@@ -5,9 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Third-party SDKs -->
-    <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js" defer></script>
-    <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.min.js" defer></script>
+    <!-- GC SDKs -->
+    <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
+    <script src="https://sdk-cdn.mypurecloud.com/client-apps/2.6.3/purecloud-client-app-sdk.min.js"></script>
     
     <!-- Core Framework -->
     <script src="lib/storeBase.js"></script>
@@ -45,6 +45,11 @@
     <script>
         async function start() {
             try {
+                // Check if SDKs are loaded
+                if (!window.purecloud || !window.platformClient) {
+                    throw new Error('Genesys Cloud SDKs failed to load');
+                }
+        
                 window.logger.log('index', 'Application starting');
                 const config = await fetch('/api/getConfig').then(r => r.json());
                 window.logger.log('index', 'Config retrieved successfully');
