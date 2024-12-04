@@ -1,10 +1,14 @@
-import { OpenAI } from 'openai';
+import { streamObject } from 'ai';
+import { openai } from '@ai-sdk/openai';
 import sanitizeHtml from 'sanitize-html';
 import { jsonSchema } from '../lib/analysisSchema';
 import MessageHistory from '../lib/messageHistory';
 import analyzeSystemPrompt from '../lib/analyzeSystemPrompt';
+import { z } from 'zod';
 
-export const runtime = 'edge';
+export const config = {
+  runtime: 'edge'
+};
 
 // Input sanitization
 const sanitizeInput = (text) => {
@@ -110,42 +114,24 @@ export default async function handler(req) {
 
     validateOpenAIParams({ model, maxTokens, temperature });
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    // Convert jsonSchema to Zod schema
+    const zodSchema = z.object(jsonSchema.properties);
 
-    const completion = await openai.chat.completions.create({
-      model,
-      messages: messageHistory.getMessages(),
-      max_tokens: maxTokens,
+    const result = await streamObject({
+      model: openai(model),
+      schema: zodSchema,
+      maxTokens,
       temperature,
-      response_format: {
-        type: 'json_schema',
-        schema: jsonSchema,
+      messages: messageHistory.getMessages(),
+      onError: (error) => {
+        log('Streaming error:', error.message);
       },
-      stream: true,
+      onFinish: ({ usage }) => {
+        log('Analysis completed. Token usage:', usage);
+      }
     });
 
-    const stream = new ReadableStream({
-      start(controller) {
-        const reader = completion.body.getReader();
-
-        function push() {
-          reader.read().then(({ done, value }) => {
-            if (done) {
-              controller.close();
-              return;
-            }
-            controller.enqueue(value);
-            push();
-          });
-        }
-
-        push();
-      },
-    });
-
-    return new Response(stream, {
+    return new Response(result.partialObjectStream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache, no-transform',
@@ -153,6 +139,7 @@ export default async function handler(req) {
         'Connection': 'keep-alive',
       },
     });
+
   } catch (err) {
     log('Error processing API request:', err.message);
 
