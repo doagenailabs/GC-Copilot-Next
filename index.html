@@ -42,15 +42,18 @@
     
     <!-- Verify SDK Loading -->
     <script>
-        window.logger.debug('SDKLoader', 'Verifying SDK initialization', {
-            platformClient: {
+        window.logger.debug('SDKLoader', 'Immediate SDK state check', {
+            platformClientState: {
                 exists: !!window.platformClient,
-                type: typeof window.platformClient
+                type: typeof window.platformClient,
+                keys: window.platformClient ? Object.keys(window.platformClient) : [],
+                constructorName: window.platformClient?.constructor?.name
             },
-            purecloud: {
+            purecloudState: {
                 exists: !!window.purecloud,
                 type: typeof window.purecloud,
-                hasApps: !!window.purecloud?.apps
+                hasApps: !!window.purecloud?.apps,
+                appsKeys: window.purecloud?.apps ? Object.keys(window.purecloud.apps) : []
             }
         });
     </script>
