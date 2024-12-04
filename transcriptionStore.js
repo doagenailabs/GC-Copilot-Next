@@ -8,7 +8,7 @@
 
         updateTranscriptionHistory(transcript) {
             if (!transcript || !transcript.text || !transcript.channel) {
-                console.error('Invalid transcript');
+                window.logger.error('transcriptionStore', 'Invalid transcript');
                 return;
             }
             this.transcriptionHistory.push(transcript);
