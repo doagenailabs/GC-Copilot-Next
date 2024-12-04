@@ -6,63 +6,14 @@ import analyzeSystemPrompt from '../lib/analyzeSystemPrompt';
 
 export const runtime = 'edge';
 
-// Input sanitization
-const sanitizeInput = (text) => {
-  return sanitizeHtml(text, {
-    allowedTags: [],
-    allowedAttributes: {},
-    disallowedTagsMode: 'recursiveEscape',
-  });
-};
+// Input sanitization and validation functions remain the same...
 
-// Input validation
-const validateOpenAIParams = (params) => {
-  const { model, maxTokens, temperature } = params;
-
-  if (!model || typeof model !== 'string') {
-    throw new Error('Invalid model parameter');
-  }
-
-  if (!Number.isInteger(maxTokens) || maxTokens < 1 || maxTokens > 4096) {
-    throw new Error('Invalid maxTokens parameter');
-  }
-
-  if (typeof temperature !== 'number' || temperature < 0 || temperature > 2) {
-    throw new Error('Invalid temperature parameter');
-  }
-
-  return true;
-};
-
-const validateTranscriptionData = (data) => {
-  if (!Array.isArray(data)) {
-    throw new Error('Transcription data must be an array');
-  }
-
-  data.forEach((item, index) => {
-    if (!item.text || typeof item.text !== 'string') {
-      throw new Error(`Invalid text in transcription data at index ${index}`);
-    }
-    if (!item.channel || !['EXTERNAL', 'INTERNAL'].includes(item.channel)) {
-      throw new Error(`Invalid channel in transcription data at index ${index}`);
-    }
-    if (typeof item.confidence !== 'number') {
-      throw new Error(`Invalid confidence in transcription data at index ${index}`);
-    }
-    if (typeof item.timestamp !== 'number') {
-      throw new Error(`Invalid timestamp in transcription data at index ${index}`);
-    }
-  });
-
-  return true;
-};
-
-export default async function handler(req) {
+export default async function handler(request) {
   const encoder = new TextEncoder();
   const log = (message, ...args) => console.log(`[GCCopilotNext] ${message}`, ...args);
 
   try {
-    if (req.method !== 'POST') {
+    if (request.method !== 'POST') {
       return new Response(
         JSON.stringify({
           error: 'Method Not Allowed',
@@ -72,9 +23,9 @@ export default async function handler(req) {
       );
     }
 
-    // Use Request.json() instead of req.json()
-    const body = await req.json();
-    if (!body.transcriptionData) {
+    const body = await request.json();
+    
+    if (!body?.transcriptionData) {
       throw new Error('transcriptionData is required');
     }
 
