@@ -66,14 +66,17 @@
                 
                 // Set secure configuration
                 const fullConfig = {
-                    ...window.GENESYS_CONFIG,
+                    ...window._baseGenesysConfig,  // Base config from genesysConfig.js
                     clientId: config.GCclientId,
-                    logsEnabled: config.logsEnabled,
-                    maxHistoryMessages: config.maxHistoryMessages
                 };
                 
-                // Redefine config with all values
+                // Define config securely
                 window.SecureWindowManager.defineConfig(fullConfig);
+                
+                // Set other window properties
+                window.logsEnabled = config.logsEnabled;
+                window.maxHistoryMessages = config.maxHistoryMessages;
+                
                 window.logger.log('index', 'Window config set successfully');
                 
                 // Initialize SDKs using secure config
