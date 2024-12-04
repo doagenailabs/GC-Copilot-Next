@@ -59,24 +59,29 @@
                 // Define required parameters
                 const requiredParams = ['langTag', 'gcTargetEnv', 'gcHostOrigin', 'conversationId'];
                 const urlParams = new URLSearchParams(window.location.search);
-                const missingParams = requiredParams.filter(param => !urlParams.has(param));
+                const missingParams = [];
     
-                // Log all URL parameters
-                window.logger.debug('start', 'Parsed URL parameters:', Object.fromEntries(urlParams.entries()));
-    
-                // Check for missing parameters
-                if (missingParams.length > 0) {
-                    throw new Error(`Missing required URL parameters: ${missingParams.join(', ')}`);
-                }
-    
-                // Extract parameters and set them on the window object
+                // Extract parameters and set them on the window object and sessionStorage
                 requiredParams.forEach(param => {
-                    window[param] = urlParams.get(param);
-                    window.logger.info('start', `Parameter "${param}" set to:`, window[param]);
+                    let value = urlParams.get(param);
+                    if (value) {
+                        window[param] = value;
+                        window.logger.info('start', `Parameter "${param}" set to:`, window[param]);
+                        sessionStorage.setItem(param, value);
+                    } else {
+                        // Try to get it from sessionStorage
+                        value = sessionStorage.getItem(param);
+                        if (value) {
+                            window[param] = value;
+                            window.logger.info('start', `Parameter "${param}" retrieved from sessionStorage:`, value);
+                        } else {
+                            missingParams.push(param);
+                        }
+                    }
                 });
     
-                if (!window.conversationId) {
-                    throw new Error('Missing conversationId in URL parameters');
+                if (missingParams.length > 0) {
+                    throw new Error(`Missing required URL parameters: ${missingParams.join(', ')}`);
                 }
     
                 window.logger.info('index', 'Starting application with config:', config);
