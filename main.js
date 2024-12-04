@@ -223,88 +223,53 @@ async function processTranscription(data) {
 }
 
 async function analyzeTranscripts(recentTranscripts) {
-    try {
-        window.logger.debug('main', 'Starting transcript analysis:', {
-            transcriptCount: recentTranscripts.length,
-            oldestTimestamp: Math.min(...recentTranscripts.map(t => t.timestamp))
-        });
+  const timeout = 30000; // 30 second timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-        const requestBody = JSON.stringify({
-            transcriptionData: JSON.stringify(recentTranscripts)
-        });
+  try {
+    const requestBody = JSON.stringify({
+      transcriptionData: JSON.stringify(recentTranscripts)
+    });
 
-        window.logger.debug('main', 'Making analysis API request:', {
-            endpoint: '/api/analyze',
-            payloadSize: requestBody.length
-        });
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-csrf-token': window.csrfToken
+      },
+      body: requestBody,
+      signal: controller.signal
+    });
 
-        let response;
-        const maxRetries = 3;
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                response = await fetch('/api/analyze', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-csrf-token': window.csrfToken
-                    },
-                    body: requestBody
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                break; // Exit loop if successful
-            } catch (error) {
-                window.logger.error('main', `Attempt ${attempt} failed for analysis API:`, {
-                    error: error.message
-                });
-                if (attempt === maxRetries) {
-                    throw new Error('Max retries reached for analysis API');
-                }
-            }
-        }
-
-        window.logger.debug('main', 'Starting stream processing of analysis response');
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let analysisText = '';
-        let chunkCount = 0;
-
-        while (true) {
-            const { done, value } = await reader.read();
-
-            if (done) {
-                window.logger.info('main', 'Completed stream processing:', {
-                    totalChunks: chunkCount,
-                    finalTextLength: analysisText.length
-                });
-                break;
-            }
-
-            const chunk = decoder.decode(value);
-            analysisText += chunk;
-            chunkCount++;
-
-            window.logger.debug('main', 'Processing analysis chunk:', {
-                chunkNumber: chunkCount,
-                chunkSize: chunk.length,
-                totalSize: analysisText.length
-            });
-
-            window.analysisStore.updateAnalysis(analysisText);
-        }
-
-        window.logger.info('main', 'Analysis completed successfully:', {
-            totalChunks: chunkCount,
-            finalSize: analysisText.length
-        });
-
-    } catch (err) {
-        window.logger.error('main', 'Error in analyzeTranscripts:', {
-            error: err.message,
-            stack: err.stack
-        });
-        throw err;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    // Process response stream...
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let analysisText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      analysisText += decoder.decode(value);
+      window.analysisStore.updateAnalysis(analysisText);
+    }
+
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      window.logger.error('main', 'Analysis request timed out');
+      window.analysisStore.updateAnalysis(JSON.stringify({
+        error: 'Analysis timed out',
+        timestamp: new Date().toISOString()
+      }));
+    } else {
+      window.logger.error('main', 'Error in analyzeTranscripts:', err);
+      throw err;
+    }
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
