@@ -9,7 +9,7 @@ export const runtime = 'edge';
 // Input sanitization
 const sanitizeInput = (text) => {
   return sanitizeHtml(text, {
-    allowedTags: [], // Strip all HTML
+    allowedTags: [],
     allowedAttributes: {},
     disallowedTagsMode: 'recursiveEscape',
   });
@@ -57,7 +57,7 @@ const validateTranscriptionData = (data) => {
   return true;
 };
 
-export default async (req) => {
+export default async function handler(req) {
   const encoder = new TextEncoder();
   const log = (message, ...args) => console.log(`[GCCopilotNext] ${message}`, ...args);
 
@@ -72,14 +72,14 @@ export default async (req) => {
       );
     }
 
-    const { transcriptionData } = await req.json();
-    if (!transcriptionData) {
+    const body = await new Request(req).json();
+    if (!body.transcriptionData) {
       throw new Error('transcriptionData is required');
     }
 
-    log('Received transcription data:', transcriptionData);
+    log('Received transcription data:', body.transcriptionData);
 
-    const parsedData = JSON.parse(transcriptionData);
+    const parsedData = JSON.parse(body.transcriptionData);
     validateTranscriptionData(parsedData);
 
     const messageHistory = new MessageHistory({
@@ -162,4 +162,4 @@ export default async (req) => {
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
-};
+}
