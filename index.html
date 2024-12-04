@@ -64,14 +64,20 @@
                     }
                 });
                 
-                // Set window config
-                Object.keys(config).forEach(key => {
-                    window[key] = config[key];
-                });
+                // Set secure configuration
+                const fullConfig = {
+                    ...window.GENESYS_CONFIG,
+                    clientId: config.GCclientId,
+                    logsEnabled: config.logsEnabled,
+                    maxHistoryMessages: config.maxHistoryMessages
+                };
+                
+                // Redefine config with all values
+                window.SecureWindowManager.defineConfig(fullConfig);
                 window.logger.log('index', 'Window config set successfully');
                 
-                // Initialize SDKs
-                await startGCSDKs(window.GCclientId);
+                // Initialize SDKs using secure config
+                await startGCSDKs(window.GENESYS_CONFIG.clientId);
                 window.logger.log('index', 'SDK initialized successfully');
                 
                 // Initialize WebSocket
