@@ -1,44 +1,31 @@
 window.transcriptionStore = (function () {
-    var listeners = new Set();
-    var transcriptionHistory = [];
-    var MAX_HISTORY = 50;
+    class TranscriptionStore extends StoreBase {
+        constructor() {
+            super();
+            this.transcriptionHistory = [];
+            this.MAX_HISTORY = 50;
+        }
 
-    function updateTranscriptionHistory(transcript) {
-        if (!transcript || !transcript.text || !transcript.channel) {
-            window.logger.error('transcriptionStore', 'Invalid transcript');
-            return;
-        }
-        transcriptionHistory.push(transcript);
-        if (transcriptionHistory.length > MAX_HISTORY) {
-            transcriptionHistory.shift();
-        }
-        listeners.forEach(function (listener) {
-            try {
-                listener(transcriptionHistory);
-            } catch (err) {
-                window.logger.error('transcriptionStore', 'Listener error:', err);
+        updateTranscriptionHistory(transcript) {
+            if (!transcript || !transcript.text || !transcript.channel) {
+                throw new Error('Invalid transcript');
             }
-        });
-    }
-
-    function subscribeToTranscriptions(listener) {
-        if (typeof listener !== 'function') {
-            window.logger.error('transcriptionStore', 'Listener must be a function');
-            return function () { };
+            this.transcriptionHistory.push(transcript);
+            if (this.transcriptionHistory.length > this.MAX_HISTORY) {
+                this.transcriptionHistory.shift();
+            }
+            this.notifyListeners(this.transcriptionHistory);
         }
-        listeners.add(listener);
-        return function () {
-            listeners.delete(listener);
-        };
+
+        getCurrentTranscriptionHistory() {
+            return [...this.transcriptionHistory];
+        }
     }
 
-    function getCurrentTranscriptionHistory() {
-        return transcriptionHistory;
-    }
-
+    const store = new TranscriptionStore();
     return {
-        updateTranscriptionHistory: updateTranscriptionHistory,
-        subscribeToTranscriptions: subscribeToTranscriptions,
-        getCurrentTranscriptionHistory: getCurrentTranscriptionHistory
+        updateTranscriptionHistory: store.updateTranscriptionHistory.bind(store),
+        subscribeToTranscriptions: store.addListener.bind(store),
+        getCurrentTranscriptionHistory: store.getCurrentTranscriptionHistory.bind(store)
     };
 })();
